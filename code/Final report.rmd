@@ -1,0 +1,328 @@
+---
+title: "Final report"
+author: "Shanmukh"
+date: "April 22, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Install libraries
+```{r,message=FALSE, warning=FALSE}
+library(readr) # to load the files
+library(dplyr) # for data wrangling
+library(stringr)# for string manipulation
+library(zoo) # for filling missing values
+library(corrplot)  # to access correlation functions
+
+```
+
+
+** Gapminder dataset **
+
+```{r}
+gap_d <- read.csv("C:/Main/Shanmukh/MS/Indiana university/applied data science/Final project/gapminder.csv", header=TRUE)
+
+gap<-gap_d # New data frame gap is created
+
+```
+
+
+#### About gapminder dataset
+
+```{r}
+str(gap) # structure of gap data set
+
+summary(gap) # summary of gap dataset
+```
+
+
+
+* 41284 observations with 6 columns
+* Data set is covering 197 countries across 6 regions
+* Data is from 1800 to 2015
+* Country, region and population are with data type factor
+* Year & income are with data type integer
+* life is a numeric data type
+* Income has 2341 null values
+* America region has 7961 records and South Asia has 1728 records in the gapminder dataset
+
+
+#### Reducing the data set size by region and year
+
+** Subset of gapminder data set **
+
+
+
+ subset data of years 1950,1960,1970,1980,1990,2000,2010,2015 & region America,South Asia is considered for analysis
+gap_r<-gap[gap$Year %in% c(1950,1960,1970,1980,1990,2000,2010,2015)
+          & gap$region %in% c('America','South Asia'),]
+
+
+
+#### Data Transformation
+
+Converting Population data set from factor to Numeric for performing stastical analysis
+
+- replacing comma
+```{r}
+gap$population <- lapply(gap$population, gsub, pattern = ",", replacement = "", fixed = TRUE)
+
+```
+
+
+- converting population column from factor to numeric
+
+```{r}
+
+# converting population column from factor to numeric
+gap$population <- as.numeric(as.character(gap$population)) 
+
+```
+
+- verify class of population column
+```{r}
+class(gap_r$population)
+
+```
+
+
+#### verify records with null values
+
+- Verify which columns has null values
+```{r}
+colSums(is.na(gap)) # verify number of null values column wise
+```
+
+#### Derive missing population numbers
+
+* As population census is taken once in 10 years same value to be considered for next 9 years
+
+```{r}
+
+# replacing the null population value in the data frame with previous year not null value
+
+gap$population <-na.locf(gap$population, fromLast = FALSE) 
+
+colSums(is.na(gap)) # verify number of null values column wise
+
+```
+
+
+- verify null value records
+```{r}
+ gap_null <-gap %>% 
+  filter_all(any_vars(is.na(.))) %>%
+  group_by(Country,region)%>%
+  summarise(count_na=sum(is.na(income)))
+
+
+gap_null
+
+sum(gap_null$count_na)
+```
+
+```{r}
+
+gap_m<-gap[is.na(gap$income),]# subset of data with missing income fields
+
+
+# Data of non missing values for the countries with missing values
+ gap %>% 
+  filter(Country%in%gap_m$Country)%>%
+  group_by(Country,region)%>%
+  summarise(count_na=sum(!is.na(income)))
+
+```
+
+
+From the above analysis we can conclude all the countries with missing income data dont have single record with income details except for croatia
+
+* Croatia has values for 196 records and only 20 records has missing income
+
+```{r}
+
+# Analyze the income data for Croatia
+#gap[gap$Country=="Croatia",]
+
+```
+
+* Coratia Income data has been collected only from 1820 and prior years is not collected hence it is not logical to populate missing income values of earlier years with mean or median.
+
+- we conclude that missing income values to the extent of 2341 needs to be omitted on need bases based on the analysis.
+
+#### Excluding records with NA
+
+```{r}
+
+gap_r <-gap_r[complete.cases(gap_r), ]  # removing records with null values
+
+```
+
+
+#### Co-relation between elements of dataset
+
+```{r}
+# subset only numeric data type columns without missing values
+
+gap_num <- gap[complete.cases(gap),c(3,4,5)] # removing missing records and only numeric columns
+
+cor(gap_num)
+
+corrplot(cor(gap_num),method="ellipse")
+
+```
+
+
+* Income and life are having positive relation of 0.57
+
+  - As income increases life expectency increases
+  
+* Income and population are not having relation of 0.03
+
+  - As the correlation is near 0, there is no relation between Income and population
+  
+* Life and population are midly positive relation of 0.11
+
+  - As the Population increase Life expectency increases mildly.
+  
+
+
+
+
+
+
+
+
+```{r}
+
+View(gaps)
+
+table(gap_am_sa$population)
+
+
+
+gap_am_sa_n[gap_am_sa_n$population=="NULL",]
+
+
+colSums(is.na(gap_am_sa_n))
+
+gap_am_sa[gap_am_sa$Country=="Afghanistan",]
+
+ gap[gap$Country=="French Guiana",]
+
+gap_am_sa_n <- gap_am_sa
+
+gap_am_sa_n$population <- lapply(gap_am_sa_n$population, gsub, pattern = ",", replacement = "", fixed = TRUE)
+
+```
+```{r}
+
+gt <-gap %>%
+  filter(Year==c(1950,1960,1970,1980,1990,2000,2010,2015))
+```
+
+#### Verify structuer of gap dataset
+
+```{r}
+str(gap_am_sa)
+```
+
+* Country & region are Factor data type
+* Year and income are integers
+* population is factor data type
+  - Need to change the population data type from factor to integer for performing exploratory analysis
+  
+```{r}
+summary(gap_am_sa_n)
+```
+
+
+```{r}
+
+am_gap <- gap %>% 
+  filter(region=="America")
+
+table(gap$Country)
+
+hist(gap_am_sa$life,
+main="histogram")
+
+hist(gap_am_sa$income,
+main="histogram")
+
+
+gap_es <- gap %>%
+  dplyr::mutate(ES=Country %in% c("United States"))
+
+gap_es %>%
+  dplyr::group_by(ES)%>%
+  dplyr::summarize(mean(life),median(life))
+
+tt <- gap%>%
+  dplyr::filter(Country=="United States")
+
+tt <- head(round(gap$life),11)
+tt
+
+
+gap_country <- gap
+
+gaps_stat<-gaps %>%
+  group_by(region) %>%
+  summarize(mean(life,na.rm=TRUE),median(life,na.rm=TRUE)
+            ,mean(income,na.rm=TRUE),median(income,na.rm=TRUE)) %>%
+  rename(mean_life = 'mean(life, na.rm = TRUE)', median_life = 'median(life, na.rm = TRUE)',
+         mean_income ='mean(income, na.rm = TRUE)' , median_income='median(income, na.rm = TRUE)')
+
+  str(gap_stat)
+
+ str(gap_country) 
+  
+
+gaps_stat %>%
+  filter(gap_stat$`mean(life)`==max(gap_stat$`mean_life`))
+
+```
+
+
+
+
+
+```{r}
+  hist(gap %>%
+  filter(region=="America")%>%
+  select(life))
+
+hist(gaps$life[gap_am_sa$region=="America"])
+
+hist(gap$life[gap$region=="Europe & Central Asia"])
+
+
+hist(gap$life[gap$region=="Middle East & North Africa"])
+
+hist(gaps$life[gap_am_sa$region=="South Asia"])
+
+```
+
+```{r}
+plot(income~life, data= gap_am_sa)
+
+plot(life~Year,data=gap_am_sa)
+
+plot(gap_am_sa$Year,gap_am_sa$life)
+```
+
+```{r}
+gap_lm <- lm(life~income,data=gap)
+
+summary(gap_lm)
+```
+
+```{r}
+
+```
+

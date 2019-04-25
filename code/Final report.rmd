@@ -2,7 +2,13 @@
 title: "Final report"
 author: "Shanmukh"
 date: "April 22, 2019"
-output: html_document
+output:
+  html_document:
+    toc: TRUE
+    toc_float: false
+    toc_depth: 4
+    df_print: paged
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -10,18 +16,21 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-Install libraries
+**Install libraries**
 ```{r,message=FALSE, warning=FALSE}
 library(readr) # to load the files
 library(dplyr) # for data wrangling
 library(stringr)# for string manipulation
 library(zoo) # for filling missing values
 library(corrplot)  # to access correlation functions
+library(ggplot2) # for plotting
 
 ```
 
 
-** Gapminder dataset **
+**Gapminder dataset**
+
+- Load gapminder data and assign to gap_d
 
 ```{r}
 gap_d <- read.csv("C:/Main/Shanmukh/MS/Indiana university/applied data science/Final project/gapminder.csv", header=TRUE)
@@ -43,7 +52,8 @@ summary(gap) # summary of gap dataset
 
 * 41284 observations with 6 columns
 * Data set is covering 197 countries across 6 regions
-* Data is from 1800 to 2015
+* On an average there are 216 records for each country across multiple years
+* Data is from year 1800 to 2015
 * Country, region and population are with data type factor
 * Year & income are with data type integer
 * life is a numeric data type
@@ -51,15 +61,16 @@ summary(gap) # summary of gap dataset
 * America region has 7961 records and South Asia has 1728 records in the gapminder dataset
 
 
-#### Reducing the data set size by region and year
-
-** Subset of gapminder data set **
 
 
+#### Questions
 
- subset data of years 1950,1960,1970,1980,1990,2000,2010,2015 & region America,South Asia is considered for analysis
-gap_r<-gap[gap$Year %in% c(1950,1960,1970,1980,1990,2000,2010,2015)
-          & gap$region %in% c('America','South Asia'),]
+* Whether life expectancy increases based on Income
+* Whether  high population will have low income levels?
+* Whether life expectancy improve over the years?
+* Whether Income levels improved over the years?
+* Whether population increased where life expectancy is more?
+
 
 
 
@@ -85,7 +96,7 @@ gap$population <- as.numeric(as.character(gap$population))
 
 - verify class of population column
 ```{r}
-class(gap_r$population)
+class(gap$population)
 
 ```
 
@@ -154,13 +165,7 @@ From the above analysis we can conclude all the countries with missing income da
 
 - we conclude that missing income values to the extent of 2341 needs to be omitted on need bases based on the analysis.
 
-#### Excluding records with NA
 
-```{r}
-
-gap_r <-gap_r[complete.cases(gap_r), ]  # removing records with null values
-
-```
 
 
 #### Co-relation between elements of dataset
@@ -190,14 +195,289 @@ corrplot(cor(gap_num),method="ellipse")
   - As the Population increase Life expectency increases mildly.
   
 
+#### Scatter plot to view Correlation results {.tabset .tabset-fade .tabset-pills}
+
+##### Income Vs Life
+
+```{r}
+
+plot(gap$income~gap$life,pch=19,col="blue",
+     main='scatter plot of income vs life',
+     xlab="Life",
+     ylab='Income')
+abline(lm(gap$income~gap$life),col="red",lty=2,lwd=3)
+
+```
+
+
+* Scatter plot shows that Income and Life are having linear relationship
+  - both of them having considerable positive correlation
+
+
+##### Population Vs Life
+
+```{r}
+
+plot(gap$population~gap$life,pch=19,col="blue",
+     main='scatter plot of Population vs life',
+     xlab="Life",
+     ylab='population')
+abline(lm(gap$population~gap$life),col="red",lty=2,lwd=3)
+
+```
+
+* Scatter plot shows Populationa and Life are having linear relationship
+  - Both of them having mild positive correlation
+
+##### Income Vs Population
+
+```{r}
+
+
+plot(gap$income~gap$population,pch=19,col="blue",
+     main='scatter plot of Income vs Population',
+     xlab="Population",
+     ylab='Income')
+abline(lm(gap$income~gap$population),col="red",lty=2,lwd=3)
+
+
+```
+
+
+* scatter plot shows population and Income are not having any linear relationship
+  _ Both of the attributes don't have any relation
 
 
 
+#### data for each region
+
+
+```{r}
+ggplot(gap[complete.cases(gap), ])+
+  geom_smooth(mapping=aes(x=life,y=income,col=region))+
+  labs(title="Trend of Income over life across regions",x="Life", y = "Income")+
+   theme(legend.position="bottom")
+
+
+```
 
 
 
 
 ```{r}
+ggplot(gap[complete.cases(gap), ])+
+  geom_smooth(mapping=aes(x=life,y=population,col=region))
+
+
+
+```
+
+```{r}
+ggplot(gap[complete.cases(gap), ])+
+  geom_smooth(mapping=aes(x=population,y=income,col=region,size=life))
+```
+
+
+#### Box plots and Variance analysis
+
+##### Variance of Life across Regions
+
+```{r}
+
+ggplot(data=gap,mapping=aes(x=region,y=life,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1)+
+ # geom_boxplot(varwidth=TRUE)+
+ theme_classic()+
+ labs(title="Plot of life per region",x="Region", y = "Life")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+ theme(legend.position="bottom")+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))
+ # scale_x_discrete(limits=c("Europe & Central Asisa","America","Sub-Saharan Africa"))+
+   # coord_flip()
+
+```
+
+
+```{r}
+gap %>%
+  group_by(region) %>%
+  summarize(mean_life=round(mean(life)), median_life=round(median(life)),
+            sd_life = round(sd(life)),
+            IQR_life = round(IQR(life)),
+            mad_life = round(mad(life)))%>%
+  arrange(desc(mean_life))
+```
+
+* Europe and Central Asia has high mean life of 49
+* south asia and Sub-saharan Africa has comparable mean_life of 37 & 38.
+* south asia has outliers near life 80 and sub-saharan has outlier at high and low life.
+
+
+##### Histogram with normal curve
+
+```{r}
+
+hist(gap$life,
+     col="grey75",
+     main="Distribution of Life",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap$life),
+            sd(gap$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+
+ggplot(gap,aes(x=life))+geom_histogram()+facet_grid(~region)
+
+
+library('lattice')
+histogram(~ life | region, data = gap)
+
+
+histogram(~region, data=gap, 
+      type = "density",layout=c(1,2),
+      panel=function(x, ...) {
+        panel.histogram(x, ...)
+        panel.mathdensity(dmath=dnorm, col="black",
+# Add na.rm = TRUE to mean() and sd()
+                          args=list(mean=mean(gap$life, na.rm = TRUE),
+                                    sd=sd(gap$life, na.rm = TRUE)), ...)})
+
+```
+
+##### Variance of Income across regions
+
+```{r}
+
+ggplot(data=gap,mapping=aes(x=region,y=income,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1,na.rm = TRUE)+
+ theme_classic()+
+ scale_y_continuous(trans='log10')+
+ labs(title="Box Plot of income per region",x="Region", y = "Income")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4,na.rm = TRUE)+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))+
+    theme(legend.position="bottom")
+
+gap[complete.cases(gap), ] %>%
+  group_by(region) %>%
+  summarize(mean_income=round(mean(income)), median_income=round(median(income)),
+            sd_income = round(sd(income)),
+            IQR_income = round(IQR(income)),
+            mad_income = round(mad(income)))%>%
+  arrange(desc(mean_income))
+
+```
+
+
+* Middle East & North Africa has higher mean income of 8064 with higher standard deviation of 20413
+* America is in 3rd rank in mean income, however standard deviation is 6151 and IQR of 4184 denotes the data is having less variance from the mean
+* huge outlier exists for regions East Asia & pacific, Middle east& North Africa, south asia & sub saharan africa
+
+
+
+
+#### variance of population across regions
+
+```{r}
+
+
+ggplot(data=gap,mapping=aes(x=region,y=population,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1,na.rm = TRUE)+
+ theme_classic()+
+ scale_y_continuous(trans='log10')+
+ labs(title="Box Plot of Population across regions",x="Region", y = "Population")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4,na.rm = TRUE)+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))+
+    theme(legend.position="bottom")
+
+gap[complete.cases(gap), ] %>%
+  group_by(region) %>%
+  summarize(mean_population=round(mean(population)), median_population=round(median(population)),
+            sd_population = round(sd(population)),
+            IQR_population = round(IQR(population)),
+            mad_population = round(mad(population)))%>%
+  arrange(desc(mean_population))
+
+```
+
+
+* South Asia and East asia & Pacific has more mean population with higher standard deviation and IQR compared to other regions
+* Europe and central Asia has outliers for few countries for few year has lower population
+* Sub Saharan Africa has outlier for few records for low and high population
+
+
+
+#### Linear regression
+```{r}
+gap_lm <- lm(life~income,data=gap)
+
+
+summary(gap_lm)
+```
+
+* Linear regression equation for dependent variable Life and independent variable Income
+
+Life = 38.73 + 0.0009217 * Income
+
+- since slope is positive we can assume these variables are have positive relationship
+
+1)	There is a linear relationship
+2)	Variation in residuals are same for small and large values
+3)	Residuals follow normal probability distribution
+
+
+```{r}
+
+cor.test(gap$life,gap$income,use="complete.obs")
+
+```
+
+Analysis on population with high income will always have high life expectancy:
+
+- degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
+
+
+.	As per linear regression model every unit increase in SAT score increase college GPA by 0.001931
+.	As the slope is positive college gpa is positively related to SAT score
+.	Correlation between college gpa and SAT score is 0.4087123 
+o	Relation is mildly positive
+o	Relation between two variables is moderate.
+.	R squared is 0.167
+
+
+**Conclusion:**
+As R squared is 0.3322,  Variation in Life (dependent variable) to the extent of 33% is explained by variation in income(indpendent variable)
+
+As per above scatter plot there are many people who have lower income had high life expectency
+
+As R squared is average (33.2%), we cannot conclude income level will completely determine the life expectancy. In other words we cannot conclude high income levels will always lead to higher life expectancy. 
+
+
+
+
+
+gap_r <-gap_r[complete.cases(gap_r), ]  # removing records with null values
+
+
+#### Reducing the data set size by region and year
+
+** Subset of gapminder data set **
+
+
+
+ subset data of years 1950,1960,1970,1980,1990,2000,2010,2015 & region America,South Asia is considered for analysis
+gap_r<-gap[gap$Year %in% c(1950,1960,1970,1980,1990,2000,2010,2015)
+          & gap$region %in% c('America','South Asia'),]
+
+
+
+
+
+
 
 View(gaps)
 
@@ -218,30 +498,18 @@ gap_am_sa_n <- gap_am_sa
 
 gap_am_sa_n$population <- lapply(gap_am_sa_n$population, gsub, pattern = ",", replacement = "", fixed = TRUE)
 
-```
-```{r}
+
+
 
 gt <-gap %>%
   filter(Year==c(1950,1960,1970,1980,1990,2000,2010,2015))
-```
 
-#### Verify structuer of gap dataset
 
-```{r}
-str(gap_am_sa)
-```
 
-* Country & region are Factor data type
-* Year and income are integers
-* population is factor data type
-  - Need to change the population data type from factor to integer for performing exploratory analysis
   
-```{r}
-summary(gap_am_sa_n)
-```
 
 
-```{r}
+
 
 am_gap <- gap %>% 
   filter(region=="America")
@@ -286,13 +554,13 @@ gaps_stat<-gaps %>%
 gaps_stat %>%
   filter(gap_stat$`mean(life)`==max(gap_stat$`mean_life`))
 
-```
 
 
 
 
 
-```{r}
+
+
   hist(gap %>%
   filter(region=="America")%>%
   select(life))
@@ -306,21 +574,9 @@ hist(gap$life[gap$region=="Middle East & North Africa"])
 
 hist(gaps$life[gap_am_sa$region=="South Asia"])
 
-```
 
-```{r}
-plot(income~life, data= gap_am_sa)
 
-plot(life~Year,data=gap_am_sa)
 
-plot(gap_am_sa$Year,gap_am_sa$life)
-```
-
-```{r}
-gap_lm <- lm(life~income,data=gap)
-
-summary(gap_lm)
-```
 
 ```{r}
 

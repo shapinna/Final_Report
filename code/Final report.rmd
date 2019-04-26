@@ -24,9 +24,11 @@ library(stringr)# for string manipulation
 library(zoo) # for filling missing values
 library(corrplot)  # to access correlation functions
 library(ggplot2) # for plotting
+library(car) # heteroscedasticit test
 
 ```
 
+## Exploratory Data Analysis
 
 **Gapminder dataset**
 
@@ -314,7 +316,9 @@ gap %>%
 * south asia has outliers near life 80 and sub-saharan has outlier at high and low life.
 
 
-##### Histogram with normal curve
+#### Verify Distribution of Life {.tabset .tabset-fade .tabset-pills}
+
+##### All regions
 
 ```{r}
 
@@ -329,25 +333,119 @@ curve(dnorm(x,mean(gap$life),
       col="red",
       lwd=3)
 
-ggplot(gap,aes(x=life))+geom_histogram()+facet_grid(~region)
+```
 
 
-library('lattice')
-histogram(~ life | region, data = gap)
+##### America
 
+```{r}
 
-histogram(~region, data=gap, 
-      type = "density",layout=c(1,2),
-      panel=function(x, ...) {
-        panel.histogram(x, ...)
-        panel.mathdensity(dmath=dnorm, col="black",
-# Add na.rm = TRUE to mean() and sd()
-                          args=list(mean=mean(gap$life, na.rm = TRUE),
-                                    sd=sd(gap$life, na.rm = TRUE)), ...)})
+hist(gap[gap$region=="America",]$life,
+     col="grey75",
+     main="Distribution of Life for America region",
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="America",]$life),
+            sd(gap[gap$region=="America",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+```
+
+##### East Asia & Pacific
+
+```{r}
+
+hist(gap[gap$region=="East Asia & Pacific",]$life,
+     col="grey75",
+     main="Distribution of Life for East Asia & Pacific region",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="East Asia & Pacific",]$life),
+            sd(gap[gap$region=="East Asia & Pacific",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
 
 ```
 
-##### Variance of Income across regions
+##### Europe & Central Asia
+
+```{r}
+hist(gap[gap$region=="Europe & Central Asia",]$life,
+     col="grey75",
+     main="Distribution of Life for Europe & Central Asia region",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="Europe & Central Asia",]$life),
+            sd(gap[gap$region=="Europe & Central Asia",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+```
+
+
+##### Middle East & North Africa
+
+```{r}
+hist(gap[gap$region=="Middle East & North Africa",]$life,
+     col="grey75",
+     main="Distribution of Life for Middle East & North Africa region",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="Middle East & North Africa",]$life),
+            sd(gap[gap$region=="Middle East & North Africa",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+```
+
+##### South Asia
+
+```{r}
+hist(gap[gap$region=="South Asia",]$life,
+     col="grey75",
+     main="Distribution of Life for South Asia region",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="South Asia",]$life),
+            sd(gap[gap$region=="South Asia",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+```
+
+
+##### Sub-Saharan Africa
+```{r}
+hist(gap[gap$region=="Sub-Saharan Africa",]$life,
+     col="grey75",
+     main="Distribution of Life for Sub-Saharan Africa region",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
+            sd(gap[gap$region=="Sub-Saharan Africa",]$life)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+
+
+
+
+
+```
+
+
+
+library(MASS)
+      
+truehist(gap[gap$region=="America",]$life)
+# Add the density curve to the histogram
+lines(density(gap[gap$region=="America",]$life))
+
+      
+  
+
+#### Variance of Income across regions
 
 ```{r}
 
@@ -411,9 +509,12 @@ gap[complete.cases(gap), ] %>%
 
 
 
-#### Linear regression
+## Linear regression
+
+#### Linear regression model
+
 ```{r}
-gap_lm <- lm(life~income,data=gap)
+gap_lm <- lm(life~income,data=gap) # Linear regression model
 
 
 summary(gap_lm)
@@ -421,24 +522,135 @@ summary(gap_lm)
 
 * Linear regression equation for dependent variable Life and independent variable Income
 
+As per linear regression model y = ?? + ?? x
 Life = 38.73 + 0.0009217 * Income
 
-- since slope is positive we can assume these variables are have positive relationship
+#### Interpretation of Linear regression model
 
+*	?? (a in sample prediction equation) represents the y-intercept in a linear regression model 
+*	?? (b in sample prediction equation) represents the slope in a linear regression model
+* As per above prediction equation we can predict every unit of increase in income will reflect 0.0009217 increase in life
+* As ??>0 Both Life and Income are positively related
+* Test statistic t = 139.2 & P <2e-16 indicates ?? is not equal to 0  it means both Life and Income are not  independent
+* As R squared = 0.3322 denotes variation in Life can be explained to the extent of 33.22% by variation in Income
+
+- degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
+
+
+#### Correlation of dependent variable and independent variable
+
+```{r}
+cor.test(gap$life,gap$income,use="complete.obs")
+
+```
+
+* As correlation r = 0.576409 denotes both the variables Life and Income are having relatively positive relationship
+* 95% confidence Interval is  ( 0.5697387, 0.5830034)
+
+
+
+#### Verification of linear relationship between dependent and independent variable
+
+Assumptions:
 1)	There is a linear relationship
 2)	Variation in residuals are same for small and large values
 3)	Residuals follow normal probability distribution
 
 
-```{r}
+##### Testing of linearity
 
-cor.test(gap$life,gap$income,use="complete.obs")
+```{r}
+plot(gap$income~gap$life,pch=19,col="blue",
+     main='scatter plot of income vs life',
+     xlab="Life",
+     ylab='Income')
+abline(lm(gap$income~gap$life),col="red",lty=2,lwd=3)
 
 ```
 
+As per above scatter plot we can identify that variables Life and Income are approximately in linear relationship, as regression line is inclined to upwards as the income increases.
+
+##### Verification of outliers
+
+
+
+```{r}
+plot(gpa_sat_lm,which = 4)  # Cooks distance
+
+```
+
+All the observations as per cooks distance are less than 4/38943 = 1.027, hece there no impacting outliers in the data set
+
+
+#### Verify the variability in the residuals is same for both large and small values for estimated Y
+
+```{r}
+
+plot(gap_lm$residuals~gap_lm$fitted.values,
+     main="Residual vs Predicted values")
+abline(h=0,col="red",lty=2,lwd=2)
+
+```
+
+
+As per above plot variability of residuals is not same for both large and small value  for estimated y
+
+#### Statistical test for heteroscedasticity:
+
+```{r}
+ncvTest(gap_lm)
+
+```
+
+
+As the P value < 2.22e-16  is less than 0.05 we can conclude that linear regression model has heteroscedasticity
+
+statistical test for heteroscedasticity is in line with the residual vs fitter plot above
+
+
+#### Residuals to be normally distributed
+
+```{r}
+hist(gap_lm$residuals,
+     col="grey75",
+     main="Distribution of residuals",
+     #ylim=c(0,0.7),
+     prob= TRUE)
+curve(dnorm(x,mean(gap_lm$residuals),
+            sd(gap_lm$residuals)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+
+plot(gpa_sat_lm,which = 2)
+
+```
+
+
+As per above plot we can conclude residuals are not normally distributed 
+
+
+Since the linear regression model has heteroscedasticity  we can conclude linear regression model does not fit variables between Life and Income.
+
+#### Introduction of intraction term
+
+```{r}
+
+gap_mod<- lm(life ~ income+
+               as.factor(region)+population, data=gap)
+
+summary(gap_mod)
+
+ncvTest(gap_mod)
+
+```
+
+## Cluster Analysis:
+
+
+
 Analysis on population with high income will always have high life expectancy:
 
-- degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
 
 
 .	As per linear regression model every unit increase in SAT score increase college GPA by 0.001931

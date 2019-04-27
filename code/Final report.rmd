@@ -298,6 +298,8 @@ ggplot(data=gap,mapping=aes(x=region,y=life,fill=region))+
  # scale_x_discrete(limits=c("Europe & Central Asisa","America","Sub-Saharan Africa"))+
    # coord_flip()
 
+#gap[gap$Year>1950,]
+
 ```
 
 
@@ -645,20 +647,7 @@ ncvTest(gap_mod)
 
 ```
 
-## Cluster Analysis:
-
-
-
 Analysis on population with high income will always have high life expectancy:
-
-
-
-.	As per linear regression model every unit increase in SAT score increase college GPA by 0.001931
-.	As the slope is positive college gpa is positively related to SAT score
-.	Correlation between college gpa and SAT score is 0.4087123 
-o	Relation is mildly positive
-o	Relation between two variables is moderate.
-.	R squared is 0.167
 
 
 **Conclusion:**
@@ -669,6 +658,56 @@ As per above scatter plot there are many people who have lower income had high l
 As R squared is average (33.2%), we cannot conclude income level will completely determine the life expectancy. In other words we cannot conclude high income levels will always lead to higher life expectancy. 
 
 
+
+## Cluster Analysis:
+
+
+
+```{r}
+
+#remove NA values from the gap data frame
+
+gap_1 <- na.omit(gap[,c(2,3,4,5)]) # gap_1 new data frame without null values is created
+
+#gap_1
+
+```
+
+#### Scaling
+
+```{r}
+gap_1 <- scale(gap_1)
+```
+
+
+```{r}
+
+# function to compute total within-cluster sum of square 
+wss <- function(k) {
+  kmeans(gap_1, k, nstart = 15 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+
+```
+
+
+
+### Cluster Visualization
+```{r}
+final <- kmeans(gap_1, 3, nstart = 25)
+fviz_cluster(final, data = gap_1)
+
+```
 
 
 

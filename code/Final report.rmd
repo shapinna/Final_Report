@@ -25,6 +25,9 @@ library(zoo) # for filling missing values
 library(corrplot)  # to access correlation functions
 library(ggplot2) # for plotting
 library(car) # heteroscedasticit test
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering algorithms & visualization
 
 ```
 
@@ -67,6 +70,7 @@ summary(gap) # summary of gap dataset
 
 #### Questions
 
+* Which region is better in Life and Income before 1950 & after 1950
 * Whether life expectancy increases based on Income
 * Whether  high population will have low income levels?
 * Whether life expectancy improve over the years?
@@ -133,7 +137,7 @@ colSums(is.na(gap)) # verify number of null values column wise
   summarise(count_na=sum(is.na(income)))
 
 
-gap_null
+#gap_null
 
 sum(gap_null$count_na)
 ```
@@ -290,7 +294,7 @@ ggplot(data=gap,mapping=aes(x=region,y=life,fill=region))+
  geom_boxplot(outlier.colour = "red", outlier.shape = 1)+
  # geom_boxplot(varwidth=TRUE)+
  theme_classic()+
- labs(title="Plot of life per region",x="Region", y = "Life")+
+ labs(title="Plot of life across regions",x="Region", y = "Life")+
   stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
  theme(legend.position="bottom")+
   scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
@@ -318,6 +322,78 @@ gap %>%
 * south asia has outliers near life 80 and sub-saharan has outlier at high and low life.
 
 
+##### Variance of Life across Regions before 1950
+
+```{r}
+
+ggplot(data=gap[gap$Year<1950,],mapping=aes(x=region,y=life,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1)+
+ # geom_boxplot(varwidth=TRUE)+
+ theme_classic()+
+ labs(title="Plot of life across regions before 1950",x="Region", y = "Life")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+ theme(legend.position="bottom")+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))
+ # scale_x_discrete(limits=c("Europe & Central Asisa","America","Sub-Saharan Africa"))+
+   # coord_flip()
+
+#gap[gap$Year>1950,]
+
+```
+
+```{r}
+gap %>%
+  filter(Year<1950) %>%
+  group_by(region) %>%
+  summarize(mean_life=round(mean(life)), median_life=round(median(life)),
+            sd_life = round(sd(life)),
+            IQR_life = round(IQR(life)),
+            mad_life = round(mad(life)))%>%
+  arrange(desc(mean_life))
+```
+
+
+* Before 1950 has large outliers in the data set for all the regions
+* Europe & central asia is better with higher mean and median of 39 & 37 in life however, standard deviation is high out of all regions
+* South asia was not doing well in life with mean & median of 29 and stand deviation of 5
+
+
+##### Variance of Life across Regions after 1950
+
+```{r}
+
+ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=life,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1)+
+ # geom_boxplot(varwidth=TRUE)+
+ theme_classic()+
+ labs(title="Plot of life across regions after 1950",x="Region", y = "Life")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+ theme(legend.position="bottom")+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))
+ # scale_x_discrete(limits=c("Europe & Central Asisa","America","Sub-Saharan Africa"))+
+   # coord_flip()
+
+
+```
+
+```{r}
+gap %>%
+  filter(Year>1950) %>%
+  group_by(region) %>%
+  summarize(mean_life=round(mean(life)), median_life=round(median(life)),
+            sd_life = round(sd(life)),
+            IQR_life = round(IQR(life)),
+            mad_life = round(mad(life)))%>%
+  arrange(desc(mean_life))
+```
+
+* Life expectancy almost doubled before 1950 & after 1950 across all the regions
+* Europe & central asia is doing better with mean and median life of 71 with lower standard deviation of 6
+* South Asia improved more compared to sub-saharan africa
+* Sub-Saharan africa is poor performer in life with mean and median of 54 and with standard deviation of 8 compared to other regions.
+
 #### Verify Distribution of Life {.tabset .tabset-fade .tabset-pills}
 
 ##### All regions
@@ -337,6 +413,9 @@ curve(dnorm(x,mean(gap$life),
 
 ```
 
+* Life is not normally distributed across all ages
+* it is skewed toward right
+* No of countries before 40 is high compared to after 40
 
 ##### America
 
@@ -352,6 +431,10 @@ curve(dnorm(x,mean(gap[gap$region=="America",]$life),
       col="red",
       lwd=3)
 ```
+
+
+* Life for america is not normal it is binomial since theare are two high points
+
 
 ##### East Asia & Pacific
 
@@ -370,6 +453,11 @@ curve(dnorm(x,mean(gap[gap$region=="East Asia & Pacific",]$life),
 
 ```
 
+
+* Life for East Asia and pacific is not distributed normally
+* Same as america region it has two highs
+
+
 ##### Europe & Central Asia
 
 ```{r}
@@ -385,6 +473,8 @@ curve(dnorm(x,mean(gap[gap$region=="Europe & Central Asia",]$life),
       lwd=3)
 ```
 
+* Life for Europe and central Asia is not distributed normally
+* Same as other regions it has two highs
 
 ##### Middle East & North Africa
 
@@ -401,6 +491,10 @@ curve(dnorm(x,mean(gap[gap$region=="Middle East & North Africa",]$life),
       lwd=3)
 ```
 
+* Life for middle east & north africa is not distributed normally
+* Same as other regions it has two highs
+
+
 ##### South Asia
 
 ```{r}
@@ -415,6 +509,9 @@ curve(dnorm(x,mean(gap[gap$region=="South Asia",]$life),
       col="red",
       lwd=3)
 ```
+
+* Life for south Asia is not distributed normally
+* Data before 40 exceeds normal curve
 
 
 ##### Sub-Saharan Africa
@@ -437,14 +534,11 @@ curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
 ```
 
 
+* Life for sub-saharan africa region is not distributed normally
+* data below 30 is outside normal range.
 
-library(MASS)
-      
-truehist(gap[gap$region=="America",]$life)
-# Add the density curve to the histogram
-lines(density(gap[gap$region=="America",]$life))
 
-      
+
   
 
 #### Variance of Income across regions
@@ -472,11 +566,72 @@ gap[complete.cases(gap), ] %>%
 ```
 
 
+* Except America and Europe & central Asia all regions has high outliers.
+* Europe & Central Asia is better perform since middle east median is very low compared to europe & central asia
+
 * Middle East & North Africa has higher mean income of 8064 with higher standard deviation of 20413
 * America is in 3rd rank in mean income, however standard deviation is 6151 and IQR of 4184 denotes the data is having less variance from the mean
 * huge outlier exists for regions East Asia & pacific, Middle east& North Africa, south asia & sub saharan africa
 
 
+#### Variance of Income across regions before 1950
+
+```{r}
+ggplot(data=gap[gap$Year<1950,],mapping=aes(x=region,y=income,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1,na.rm = TRUE)+
+ theme_classic()+
+ scale_y_continuous(trans='log10')+
+ labs(title="Box Plot of income across regions before 1950",x="Region", y = "Income")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4,na.rm = TRUE)+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))+
+    theme(legend.position="bottom")
+
+gap[complete.cases(gap), ] %>%
+  filter(Year<1950) %>%
+  group_by(region) %>%
+  summarize(mean_income=round(mean(income)), median_income=round(median(income)),
+            sd_income = round(sd(income)),
+            IQR_income = round(IQR(income)),
+            mad_income = round(mad(income)))%>%
+  arrange(desc(mean_income))
+
+```
+
+* Before 1950 Income has high outlier across all regions
+* Europe & Central Asia is better high mean & median income with high standard deviation
+* sub saharan africa is poor peformer in income before 1950 with low mean and median income
+
+
+#### Variance of Income across regions after 1950
+
+```{r}
+ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=income,fill=region))+
+ geom_boxplot(outlier.colour = "red", outlier.shape = 1,na.rm = TRUE)+
+ theme_classic()+
+ scale_y_continuous(trans='log10')+
+ labs(title="Box Plot of income across regions after 1950",x="Region", y = "Income")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4,na.rm = TRUE)+
+  scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
+                              "East Asia & Pacific" = "E Asia & pacific"))+
+    theme(legend.position="bottom")
+
+gap[complete.cases(gap), ] %>%
+  filter(Year>1950) %>%
+  group_by(region) %>%
+  summarize(mean_income=round(mean(income)), median_income=round(median(income)),
+            sd_income = round(sd(income)),
+            IQR_income = round(IQR(income)),
+            mad_income = round(mad(income)))%>%
+  arrange(desc(mean_income))
+
+```
+
+
+
+* After 1950 there are no outliers in income except for sub-sharan africa
+* Middle East & North Africa has high mean income however Europe & central Asia is better performer since median income is high with a standadard devation of 13K lower than 32K compared to middle east & north afirca
+* sub Asia is poor peformer in income after 1950 with low mean and median income
 
 
 #### variance of population across regions
@@ -665,9 +820,9 @@ As R squared is average (33.2%), we cannot conclude income level will completely
 
 ```{r}
 
-#remove NA values from the gap data frame
+#remove NA values from the gap data frame & reduced to numeric values in the dataframe & excluded year
 
-gap_1 <- na.omit(gap[,c(2,3,4,5)]) # gap_1 new data frame without null values is created
+gap_1 <- na.omit(gap[,c(3,4,5)]) # gap_1 new data frame without null values is created
 
 #gap_1
 
@@ -700,21 +855,101 @@ plot(k.values, wss_values,
 
 ```
 
+* As per above plot Elbow point optimal number of clusters is 4
+
+* Variance from centroids to the data points are reduced highly till 4 clusters, as no of clusters increased variance reduced with lower levels
 
 
 ### Cluster Visualization
 ```{r}
-final <- kmeans(gap_1, 3, nstart = 25)
+final <- kmeans(gap_1, 4, nstart = 25)
 fviz_cluster(final, data = gap_1)
 
 ```
 
 
 
+Visualzation of 4 clusters they are tighly grouped with 4 centroids.
+
+
+
+#### Answers to the Questions
+
+* **Which region is better in Life and Income before 1950 & after 1950?**
+  
+ - Before 1950 Life
+    - Europe and central asia is better performer with mean and median of 39 & 37 years with standard deviation fo 9
+    - South asia is poor performer with mean and meain of 29 with standard deviation of 5
+    
+  - After 1950 Life
+    - Life has improved a lot after 1950 across all regions
+    - Europe & central asia is better performer with mean and median of 71 years with lower standard deviation of 6 year
+    - South Asia has improved from before 1950 and after 1950
+    - Sub-Saharan africa is poor performer in life with mean and median of 54 and with standard deviation of 8 compared to other regions
+  
+  - Before 1950 Income
+    - Europe & Central Asia is better high mean & median income with high standard deviation
+    - sub saharan africa is poor peformer in income before 1950 with low mean and median income
+    
+  - After 1950 Income
+    -  Europe & central Asia is better performer since median income is high with a standadard devation of 13K lower than 32K compared to middleeast region
+    - Sub Asia is poor peformer in income with low mean and median income
+
+* **Whether life expectancy increases based on Income?**
+
+  - As per above linear regression modle where Life is dependent on Income, Adjusted R square is 33% it means, 33% of increase in life expectancy is explained by increase in income hence it is not very conclusive to say higher income will always lead to increase life
+
+
+* Whether  high population will have low income levels?
+
+* **Whether life expectancy improve over the years?**
+
+  - Life has increased to almost double when compared with periods before 1950 & after 1950
+  - Median Life increased to 71 from 37 for eurpoe and central asia region
+  - Median life increased from 35 to 69 for America
+  - Median life increased from 31 to 65 for East Asia and Pacific
+  - Median life increased from 32 to 68 for Middle east and north africa
+  - median life increased from 31 to 51 for sub-sahara african region
+  - Median life increased from 29 to 57 for south asia
+
+
+* **Whether Income levels improved over the years?**
+  
+  - Income has drastically increased across all regions when compared with income levels before and after 1950
+  
+  - Europe and central asia median income increased 7 times
+  - America median income increased 6.5 times
+  - East asia and pacific region median income increased 3.4 times
+  - Middle east and north africa median income increased by 8 times
+  - South asia region median income increased by 1.6 times
+  - sub sahara african region median income increased by 2.2 times
+  - 
+
+* Whether population increased where life expectancy is more?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**End of the report**
+
 gap_r <-gap_r[complete.cases(gap_r), ]  # removing records with null values
 
 
-#### Reducing the data set size by region and year
+
+
+
+
+
 
 ** Subset of gapminder data set **
 
@@ -828,8 +1063,4 @@ hist(gaps$life[gap_am_sa$region=="South Asia"])
 
 
 
-
-```{r}
-
-```
 

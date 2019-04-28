@@ -744,8 +744,6 @@ curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
 
 
 
-  
-
 
 ## Linear regression
 
@@ -760,20 +758,28 @@ summary(gap_lm)
 
 * Linear regression equation for dependent variable Life and independent variable Income
 
-As per linear regression model y = ?? + ?? x
+As per linear regression model y = $\alpha$ + $\beta$ x
 Life = 38.73 + 0.0009217 * Income
 
 ##### Interpretation of Linear regression model
 
-*	?? (a in sample prediction equation) represents the y-intercept in a linear regression model 
-*	?? (b in sample prediction equation) represents the slope in a linear regression model
-* As per above prediction equation we can predict every unit of increase in income will reflect 0.0009217 increase in life
-* As ??>0 Both Life and Income are positively related
-* Test statistic t = 139.2 & P <2e-16 indicates ?? is not equal to 0  it means both Life and Income are not  independent
+* Intercept $\alpha$ 38.73 indicates intercept value while all other values are zero in a linear regression model
+  - P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level
+  
+*	$\beta$ (b in sample prediction equation) represents the slope in a linear regression model  
+* Income coefficient estimate 0.0009217 indicates
+  - by holding all other variables constant, a unit increase in income will increase life by 0.0009217 units
+  - $\beta$>0 indicates both Life and Income are positively related
+  - test statistic t = 139.2 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level and we reject null hypothesis of $\beta$ =0
+
+* $\beta$ is not equal to 0  represents Life and Income are not  independent
 * As R squared = 0.3322 denotes variation in Life can be explained to the extent of 33.22% by variation in Income
 
-- degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
+* 	P value of F test< 2.2e-160 < 0.05 we reject null hypothesis of βi =0, indicates multiple regression model as a whole is explaining the variation in dependent variable sales
 
+* degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
+
+* Adjusted R square 33.22% represent variance in life is explained by variance in income by 33.22%
 
 ##### Correlation of dependent variable and independent variable
 
@@ -858,7 +864,6 @@ curve(dnorm(x,mean(gap_lm$residuals),
       col="red",
       lwd=3)
 
-plot(gap_lm,which = 2)
 
 ```
 
@@ -866,8 +871,16 @@ plot(gap_lm,which = 2)
 As per above plot we can conclude residuals are not normally distributed 
 
 
-Since the linear regression model has heteroscedasticity  we can conclude linear regression model does not fit variables between Life and Income.
+##### QQplot
 
+```{r}
+
+plot(gap_lm,which = 2)
+```
+
+* QQ Plot indicates residuals are not normally distributed
+
+Since the linear regression model has heteroscedasticity and residuals vs pridicted are not normally distributed,  we can conclude linear regression model does not fit variables between Life and Income.
 
 
 ##### Analysis on whether high income will always have high life expectancy
@@ -893,13 +906,30 @@ summary(gap_mod2)
 ```
 * Linear regression equation for dependent variable population and independent variable life
 
-As per linear regression model y = alpha + beta x
+As per linear regression model y = $\alpha$ + $\beta$ x
 
 population = -6315250 + 441077 * life
 
-* As beta >0 Both Population and Life are positively related
-* Test statistic t = 23.474 & P <2e-16 indicates beta is not equal to 0  it means both Population and Life are not  independent
-* As R squared = 0.01317 denotes variation in Population can be explained to the extent of 1.3% by variation in Income
+
+* Intercept $\alpha$ -6315250 indicates intercept value while all other values are zero in a linear regression model
+  - P value 2.33e-13  < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level
+  
+*	$\beta$ (b in sample prediction equation) represents the slope in a linear regression model  
+* Income coefficient estimate 441077 indicates
+  - by holding all other variables constant, a unit increase in Life will increase population by 441077 units
+  - $\beta$>0 indicates both Life and population are positively related
+  - test statistic t = 23.474 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level and we reject null hypothesis of $\beta$ =0
+
+* $\beta$ is not equal to 0  represents Life and Population are not  independent
+
+* Adjusted R squared = 0.01315 denotes variation in Population can be explained to the extent of 1.31% by variation in Life
+
+* 	P value of F test< 2.2e-160 < 0.05 we reject null hypothesis of βi =0, indicates multiple regression model as a whole is explaining the variation in dependent variable sales
+
+* degrees of freedom (n-2) 41282 indicates that all 41284 observations are considered
+
+
+
 
 ##### Correlation of dependent variable and independent variable
 
@@ -936,12 +966,14 @@ plot(gap_mod2$residuals~gap_mod2$fitted.values,
      main="Residual vs Predicted values")
 abline(h=0,col="red",lty=2,lwd=2)
 
-ncvTest(gap_mod2)
+ncvTest(gap_mod2) # test of heterscedasticity
 
 ```
 
 
 * Both plot and statisical testy convey Life and population has heteroscedasticity
+
+Hence linear regression model is not suitable for life and population variables
 
 ##### Analysis on whether high Life will always have high population
 
@@ -965,13 +997,19 @@ gap_1 <- na.omit(gap[,c(3,4,5)]) # gap_1 new data frame without null values is c
 
 #gap_1
 
+#kmeansObj <- kmeans(gap_1, centers = 4)
+
 ```
+
+
+
 
 #### Scaling
 
 ```{r}
 gap_1 <- scale(gap_1)
 ```
+
 
 
 #### Optimal Clusters using Elbow point method
@@ -1000,6 +1038,25 @@ plot(k.values, wss_values,
 
 * Variance from centroids to the data points are reduced highly till 4 clusters, as no of clusters increased variance reduced with lower levels
 
+
+#### Optimal clusters using Silhouette method
+
+
+
+silhouette_score <- function(k){
+  km <- kmeans(gap_1, centers = k, nstart=25)
+  ss <- silhouette(km$cluster, dist(gap_1))
+  mean(ss[, 3])
+}
+k <- 2:10
+avg_sil <- sapply(k, silhouette_score)
+plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
+
+
+fviz_nbclust(gap_1, kmeans, method='silhouette')
+```{r}
+
+```
 
 #### Cluster Visualization
 ```{r}

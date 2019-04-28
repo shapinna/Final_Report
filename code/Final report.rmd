@@ -6,7 +6,7 @@ output:
   html_document:
     toc: TRUE
     toc_float: false
-    toc_depth: 4
+    toc_depth: 5
     df_print: paged
     code_folding: show
 ---
@@ -45,6 +45,19 @@ gap<-gap_d # New data frame gap is created
 ```
 
 
+
+
+## Questions
+
+* Which region is better in Life and Income before 1950 & after 1950
+* Whether life expectancy increases based on Income
+* Whether  high population will have low income levels?
+* Whether life expectancy improve over the years?
+* Whether Income levels improved over the years?
+* Whether population increased where life expectancy is more?
+
+
+
 #### About gapminder dataset
 
 ```{r}
@@ -65,17 +78,6 @@ summary(gap) # summary of gap dataset
 * Income has 2341 null values
 * America region has 7961 records and South Asia has 1728 records in the gapminder dataset
 
-
-
-
-#### Questions
-
-* Which region is better in Life and Income before 1950 & after 1950
-* Whether life expectancy increases based on Income
-* Whether  high population will have low income levels?
-* Whether life expectancy improve over the years?
-* Whether Income levels improved over the years?
-* Whether population increased where life expectancy is more?
 
 
 
@@ -668,7 +670,7 @@ gap[complete.cases(gap), ] %>%
 
 ## Linear regression
 
-#### Linear regression model
+#### Linear regression model with life as depdent on Income
 
 ```{r}
 gap_lm <- lm(life~income,data=gap) # Linear regression model
@@ -682,7 +684,7 @@ summary(gap_lm)
 As per linear regression model y = ?? + ?? x
 Life = 38.73 + 0.0009217 * Income
 
-#### Interpretation of Linear regression model
+##### Interpretation of Linear regression model
 
 *	?? (a in sample prediction equation) represents the y-intercept in a linear regression model 
 *	?? (b in sample prediction equation) represents the slope in a linear regression model
@@ -694,7 +696,7 @@ Life = 38.73 + 0.0009217 * Income
 - degrees of freedom 38941 indicates only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
 
 
-#### Correlation of dependent variable and independent variable
+##### Correlation of dependent variable and independent variable
 
 ```{r}
 cor.test(gap$life,gap$income,use="complete.obs")
@@ -706,7 +708,7 @@ cor.test(gap$life,gap$income,use="complete.obs")
 
 
 
-#### Verification of linear relationship between dependent and independent variable
+##### Verification of linear relationship between dependent and independent variable
 
 Assumptions:
 1)	There is a linear relationship
@@ -729,17 +731,15 @@ As per above scatter plot we can identify that variables Life and Income are app
 
 ##### Verification of outliers
 
-
-
 ```{r}
-plot(gpa_sat_lm,which = 4)  # Cooks distance
+plot(gap_lm,which = 4)  # Cooks distance
 
 ```
 
 All the observations as per cooks distance are less than 4/38943 = 1.027, hece there no impacting outliers in the data set
 
 
-#### Verify the variability in the residuals is same for both large and small values for estimated Y
+##### Verify the variability in the residuals is same for both large and small values for estimated Y
 
 ```{r}
 
@@ -752,7 +752,7 @@ abline(h=0,col="red",lty=2,lwd=2)
 
 As per above plot variability of residuals is not same for both large and small value  for estimated y
 
-#### Statistical test for heteroscedasticity:
+##### Statistical test for heteroscedasticity:
 
 ```{r}
 ncvTest(gap_lm)
@@ -765,7 +765,7 @@ As the P value < 2.22e-16  is less than 0.05 we can conclude that linear regress
 statistical test for heteroscedasticity is in line with the residual vs fitter plot above
 
 
-#### Residuals to be normally distributed
+##### Residuals to be normally distributed
 
 ```{r}
 hist(gap_lm$residuals,
@@ -779,7 +779,7 @@ curve(dnorm(x,mean(gap_lm$residuals),
       col="red",
       lwd=3)
 
-plot(gpa_sat_lm,which = 2)
+plot(gap_lm,which = 2)
 
 ```
 
@@ -789,23 +789,10 @@ As per above plot we can conclude residuals are not normally distributed
 
 Since the linear regression model has heteroscedasticity  we can conclude linear regression model does not fit variables between Life and Income.
 
-#### Introduction of intraction term
-
-```{r}
-
-gap_mod<- lm(life ~ income+
-               as.factor(region)+population, data=gap)
-
-summary(gap_mod)
-
-ncvTest(gap_mod)
-
-```
-
-Analysis on population with high income will always have high life expectancy:
 
 
-**Conclusion:**
+##### Analysis on whether high income will always have high life expectancy
+
 As R squared is 0.3322,  Variation in Life (dependent variable) to the extent of 33% is explained by variation in income(indpendent variable)
 
 As per above scatter plot there are many people who have lower income had high life expectency
@@ -814,9 +801,81 @@ As R squared is average (33.2%), we cannot conclude income level will completely
 
 
 
+
+
+
+#### Linear regression model with Population as dependent on Life
+
+```{r}
+gap_mod2 <- lm(population~life,data=gap) # Linear regression model
+
+
+summary(gap_mod2)
+```
+* Linear regression equation for dependent variable population and independent variable life
+
+As per linear regression model y = ?? + ?? x
+population = -6315250 + 441077 * life
+
+* As ??>0 Both Population and Life are positively related
+* Test statistic t = 23.474 & P <2e-16 indicates ?? is not equal to 0  it means both Population and Life are not  independent
+* As R squared = 0.01317 denotes variation in Population can be explained to the extent of 1.3% by variation in Income
+
+##### Correlation of dependent variable and independent variable
+
+```{r}
+cor.test(gap$population,gap$life,use="complete.obs")
+
+```
+
+
+* As correlation r = 0.1147721 denotes both the variables population and life are having very mild positive relationship
+* 95% confidence Interval is  ( 0.1052423, 0.1242807)
+
+##### Testing of linearity
+
+```{r}
+plot(gap$life~gap$population,pch=19,col="blue",
+     main='scatter plot of income vs life',
+     xlab="Population",
+     ylab='Life')
+abline(lm(gap$life~gap$population),col="red",lty=2,lwd=3)
+
+```
+
+
+* As per above sactter plot Population and Life are not having linear relationship
+
+hence linear regression model is not suitable for population and life variables
+
+##### Verify the variability in the residuals is same for both large and small values for estimated Y
+
+```{r}
+
+plot(gap_mod2$residuals~gap_mod2$fitted.values,
+     main="Residual vs Predicted values")
+abline(h=0,col="red",lty=2,lwd=2)
+
+ncvTest(gap_mod2)
+
+```
+
+
+* Both plot and statisical testy convey Life and population has heteroscedasticity
+
+##### Analysis on whether high Life will always have high population
+
+As adjusted R square is 1.2% that means variation in increase in population is explained by variation in increase in life only by 1.2%
+
+Hence we can conclude that high life will not have high population
+
+
+
+
+
 ## Cluster Analysis:
 
-
+**Performing Kmeans clustering on the gapminder dataset**
 
 ```{r}
 
@@ -835,7 +894,7 @@ gap_1 <- scale(gap_1)
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 
 # function to compute total within-cluster sum of square 
 wss <- function(k) {
@@ -860,7 +919,7 @@ plot(k.values, wss_values,
 * Variance from centroids to the data points are reduced highly till 4 clusters, as no of clusters increased variance reduced with lower levels
 
 
-### Cluster Visualization
+#### Cluster Visualization
 ```{r}
 final <- kmeans(gap_1, 4, nstart = 25)
 fviz_cluster(final, data = gap_1)
@@ -873,7 +932,7 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
 
 
-#### Answers to the Questions
+## Answers to the Questions
 
 * **Which region is better in Life and Income before 1950 & after 1950?**
   
@@ -902,7 +961,7 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
 * Whether  high population will have low income levels?
 
-* **Whether life expectancy improve over the years?**
+* **Whether life expectancy improved over the years?**
 
   - Life has increased to almost double when compared with periods before 1950 & after 1950
   - Median Life increased to 71 from 37 for eurpoe and central asia region
@@ -916,7 +975,6 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 * **Whether Income levels improved over the years?**
   
   - Income has drastically increased across all regions when compared with income levels before and after 1950
-  
   - Europe and central asia median income increased 7 times
   - America median income increased 6.5 times
   - East asia and pacific region median income increased 3.4 times
@@ -925,15 +983,11 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
   - sub sahara african region median income increased by 2.2 times
   - 
 
-* Whether population increased where life expectancy is more?
+* **Whether population increased where life expectancy is more?**
 
+  - As per linear regression model where population is dependent on life, adjusted R square is 1.2% explains that variation in increase in population is explained by variation in increase in life only by 1.2%
 
-
-
-
-
-
-
+  - Hence we can conclude that high life will not have high population
 
 
 
@@ -942,123 +996,7 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
 **End of the report**
 
-gap_r <-gap_r[complete.cases(gap_r), ]  # removing records with null values
 
-
-
-
-
-
-
-
-** Subset of gapminder data set **
-
-
-
- subset data of years 1950,1960,1970,1980,1990,2000,2010,2015 & region America,South Asia is considered for analysis
-gap_r<-gap[gap$Year %in% c(1950,1960,1970,1980,1990,2000,2010,2015)
-          & gap$region %in% c('America','South Asia'),]
-
-
-
-
-
-
-
-View(gaps)
-
-table(gap_am_sa$population)
-
-
-
-gap_am_sa_n[gap_am_sa_n$population=="NULL",]
-
-
-colSums(is.na(gap_am_sa_n))
-
-gap_am_sa[gap_am_sa$Country=="Afghanistan",]
-
- gap[gap$Country=="French Guiana",]
-
-gap_am_sa_n <- gap_am_sa
-
-gap_am_sa_n$population <- lapply(gap_am_sa_n$population, gsub, pattern = ",", replacement = "", fixed = TRUE)
-
-
-
-
-gt <-gap %>%
-  filter(Year==c(1950,1960,1970,1980,1990,2000,2010,2015))
-
-
-
-  
-
-
-
-
-am_gap <- gap %>% 
-  filter(region=="America")
-
-table(gap$Country)
-
-hist(gap_am_sa$life,
-main="histogram")
-
-hist(gap_am_sa$income,
-main="histogram")
-
-
-gap_es <- gap %>%
-  dplyr::mutate(ES=Country %in% c("United States"))
-
-gap_es %>%
-  dplyr::group_by(ES)%>%
-  dplyr::summarize(mean(life),median(life))
-
-tt <- gap%>%
-  dplyr::filter(Country=="United States")
-
-tt <- head(round(gap$life),11)
-tt
-
-
-gap_country <- gap
-
-gaps_stat<-gaps %>%
-  group_by(region) %>%
-  summarize(mean(life,na.rm=TRUE),median(life,na.rm=TRUE)
-            ,mean(income,na.rm=TRUE),median(income,na.rm=TRUE)) %>%
-  rename(mean_life = 'mean(life, na.rm = TRUE)', median_life = 'median(life, na.rm = TRUE)',
-         mean_income ='mean(income, na.rm = TRUE)' , median_income='median(income, na.rm = TRUE)')
-
-  str(gap_stat)
-
- str(gap_country) 
-  
-
-gaps_stat %>%
-  filter(gap_stat$`mean(life)`==max(gap_stat$`mean_life`))
-
-
-
-
-
-
-
-
-  hist(gap %>%
-  filter(region=="America")%>%
-  select(life))
-
-hist(gaps$life[gap_am_sa$region=="America"])
-
-hist(gap$life[gap$region=="Europe & Central Asia"])
-
-
-hist(gap$life[gap$region=="Middle East & North Africa"])
-
-hist(gaps$life[gap_am_sa$region=="South Asia"])
 
 
 

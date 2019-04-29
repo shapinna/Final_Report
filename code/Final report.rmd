@@ -6,7 +6,7 @@ output:
   html_document:
     toc: TRUE
     toc_float: false
-    toc_depth: 5
+    toc_depth: 6
     df_print: paged
     code_folding: show
 ---
@@ -41,15 +41,17 @@ library(factoextra) # clustering algorithms & visualization
 - Load gapminder data and assign to gap_d
 
 ```{r}
-gap_d <- read.csv("C:/Main/Shanmukh/MS/Indiana university/applied data science/Final project/gapminder.csv", header=TRUE)
+gap_d <- read.csv("https://raw.githubusercontent.com/shapinna/Final_Report/master/data/gapminder.csv", header=TRUE)
 
 gap<-gap_d # New data frame gap is created
+
+#head(gap)
 
 ```
 
 
 
-## About gapminder dataset
+# About gapminder dataset
 
 ```{r}
 str(gap) # structure of gap data set
@@ -70,7 +72,7 @@ summary(gap) # summary of gap dataset
 * America region has 7961 records and South Asia has 1728 records in the gapminder dataset
 
 
-## Questions
+# Questions
 
 * Which region is better in Life and Income before 1950 & after 1950?
 * Whether life expectancy increases based on Income?
@@ -80,9 +82,9 @@ summary(gap) # summary of gap dataset
 
 
 
-## Data Wrangling
+# Data Wrangling
 
-#### Data Transformation
+### Data Transformation
 
 Converting Population data set from factor to Numeric for performing stastical analysis
 
@@ -109,14 +111,14 @@ class(gap$population)
 ```
 
 
-#### verify records with null values
+### verify records with null values
 
 - Verify which columns has null values
 ```{r}
 colSums(is.na(gap)) # verify number of null values column wise
 ```
 
-#### Derive missing population numbers
+### Derive missing population numbers
 
 * As population census is taken once in 10 years same value to be considered for next 9 years
 
@@ -132,7 +134,7 @@ colSums(is.na(gap)) # verify number of null values column wise
 
 
 - verify null value records
-```{r, message=FALSE}
+```{r, warning=FALSE}
  gap_null <-gap %>% 
   filter_all(any_vars(is.na(.))) %>%
   group_by(Country,region)%>%
@@ -175,12 +177,12 @@ From the above analysis we can conclude all the countries with missing income da
 - we conclude that missing income values to the extent of 2341 needs to be omitted on need bases based on the analysis.
 
 
-## Exploratory Data Analysis
+# Exploratory Data Analysis
 
 
-#### Box plots and Variance analysis
+### Box plots and Variance analysis
 
-##### Variance of Life across Regions
+#### Variance of Life across Regions
 
 ```{r}
 
@@ -193,15 +195,8 @@ ggplot(data=gap,mapping=aes(x=region,y=life,fill=region))+
  theme(legend.position="bottom")+
   scale_x_discrete(labels=c("Europe & Central Asia" = "Europe & C.Asia", "Middle East & North Africa" = "ME & N.Africa",
                               "East Asia & Pacific" = "E Asia & pacific"))
- # scale_x_discrete(limits=c("Europe & Central Asisa","America","Sub-Saharan Africa"))+
    # coord_flip()
 
-#gap[gap$Year>1950,]
-
-```
-
-
-```{r}
 gap %>%
   group_by(region) %>%
   summarize(mean_life=round(mean(life)), median_life=round(median(life)),
@@ -209,14 +204,18 @@ gap %>%
             IQR_life = round(IQR(life)),
             mad_life = round(mad(life)))%>%
   arrange(desc(mean_life))
+
 ```
+
+
+
 
 * Europe and Central Asia has high mean life of 49
 * south asia and Sub-saharan Africa has comparable mean_life of 37 & 38.
 * south asia has outliers near life 80 and sub-saharan has outlier at high and low life.
 
 
-###### Variance of Life across Regions before 1950
+##### Variance of Life across Regions before 1950
 
 ```{r}
 
@@ -253,7 +252,7 @@ gap %>%
 * South asia was not doing well in life with mean & median of 29 and stand deviation of 5
 
 
-###### Variance of Life across Regions after 1950
+##### Variance of Life across Regions after 1950
 
 ```{r}
 
@@ -290,7 +289,7 @@ gap %>%
 
 
 
-##### Variance of Income across regions
+#### Variance of Income across regions
 
 ```{r}
 
@@ -323,7 +322,7 @@ gap[complete.cases(gap), ] %>%
 * huge outlier exists for regions East Asia & pacific, Middle east& North Africa, south asia & sub saharan africa
 
 
-###### Variance of Income across regions before 1950
+##### Variance of Income across regions before 1950
 
 ```{r}
 ggplot(data=gap[gap$Year<1950,],mapping=aes(x=region,y=income,fill=region))+
@@ -352,7 +351,7 @@ gap[complete.cases(gap), ] %>%
 * sub saharan africa is poor peformer in income before 1950 with low mean and median income
 
 
-###### Variance of Income across regions after 1950
+##### Variance of Income across regions after 1950
 
 ```{r}
 ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=income,fill=region))+
@@ -383,7 +382,7 @@ gap[complete.cases(gap), ] %>%
 * sub Asia is poor peformer in income after 1950 with low mean and median income
 
 
-##### variance of population across regions
+#### variance of population across regions
 
 ```{r}
 
@@ -414,7 +413,7 @@ gap[complete.cases(gap), ] %>%
 * Sub Saharan Africa has outlier for few records for low and high population
 
 
-###### Variance of population across regions before 1950
+##### Variance of population across regions before 1950
 
 ```{r}
 ggplot(data=gap[gap$Year<1950,],mapping=aes(x=region,y=population,fill=region))+
@@ -442,7 +441,7 @@ gap[complete.cases(gap), ] %>%
 * Middle East & North Africa & sub saharan africa is having low population before 1950 with low mean and median income
 
 
-###### Variance of Population across regions after 1950
+##### Variance of Population across regions after 1950
 
 ```{r}
 ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=population,fill=region))+
@@ -473,7 +472,7 @@ gap[complete.cases(gap), ] %>%
 * sub Saharan Africa is having low mean population after 1950 
 
 
-#### Co-relation between elements of dataset
+### Co-relation between elements of dataset
 
 ```{r}
 # subset only numeric data type columns without missing values
@@ -500,9 +499,9 @@ corrplot(cor(gap_num),method="ellipse")
   - As the Population increase Life expectency increases mildly.
   
 
-#### Scatter plot to view Correlation results {.tabset .tabset-fade .tabset-pills}
+### Scatter plot to view Correlation results {.tabset .tabset-fade .tabset-pills}
 
-##### Income Vs Life
+#### Income Vs Life
 
 ```{r}
 
@@ -519,7 +518,7 @@ abline(lm(gap$income~gap$life),col="red",lty=2,lwd=3)
   - both of them having considerable positive correlation
 
 
-##### Population Vs Life
+#### Population Vs Life
 
 ```{r}
 
@@ -534,7 +533,7 @@ abline(lm(gap$population~gap$life),col="red",lty=2,lwd=3)
 * Scatter plot shows Populationa and Life are having linear relationship
   - Both of them having mild positive correlation
 
-##### Income Vs Population
+#### Income Vs Population
 
 ```{r}
 
@@ -553,7 +552,7 @@ abline(lm(gap$income~gap$population),col="red",lty=2,lwd=3)
   _ Both of the attributes don't have any relation
 
 
-#### Trend of Income over life across regions
+### Trend of Income over life across regions
 
 
 ```{r}
@@ -568,7 +567,7 @@ ggplot(gap[complete.cases(gap), ])+
 * Till age of 50 Income don't have any impact over life, from Age of 50 Life expectancy increased with Income levels across all the regions
 
 
-#### Trend of Population over Life across all regions
+### Trend of Population over Life across all regions
 
 
 ```{r}
@@ -587,7 +586,7 @@ ggplot(gap[complete.cases(gap), ])+
 * East Asia Pacific has data skewed toward right
 
 
-#### Trend of Population over Income across all regions
+### Trend of Population over Income across all regions
 
 ```{r}
 ggplot(gap[complete.cases(gap), ])+
@@ -601,16 +600,16 @@ ggplot(gap[complete.cases(gap), ])+
 * Income over population does not show substantial trend across regions
 
 
-#### Verify Distribution of Life {.tabset .tabset-fade .tabset-pills}
+### Verify Distribution of Life {.tabset .tabset-fade .tabset-pills}
 
-##### All regions
+#### All regions
 
 ```{r}
 
 hist(gap$life,
      col="grey75",
-     main="Distribution of Life",
-     #ylim=c(0,0.7),
+     main="Distribution of Life across all regions",
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap$life),
             sd(gap$life)),
@@ -624,13 +623,14 @@ curve(dnorm(x,mean(gap$life),
 * it is skewed toward right
 * No of countries before 40 is high compared to after 40
 
-##### America
+#### America
 
 ```{r}
 
 hist(gap[gap$region=="America",]$life,
      col="grey75",
      main="Distribution of Life for America region",
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="America",]$life),
             sd(gap[gap$region=="America",]$life)),
@@ -643,14 +643,14 @@ curve(dnorm(x,mean(gap[gap$region=="America",]$life),
 * Life for america is not normal it is binomial since theare are two high points
 
 
-##### East Asia & Pacific
+#### East Asia & Pacific
 
 ```{r}
 
 hist(gap[gap$region=="East Asia & Pacific",]$life,
      col="grey75",
      main="Distribution of Life for East Asia & Pacific region",
-     #ylim=c(0,0.7),
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="East Asia & Pacific",]$life),
             sd(gap[gap$region=="East Asia & Pacific",]$life)),
@@ -665,13 +665,13 @@ curve(dnorm(x,mean(gap[gap$region=="East Asia & Pacific",]$life),
 * Same as america region it has two highs
 
 
-##### Europe & Central Asia
+#### Europe & Central Asia
 
 ```{r}
 hist(gap[gap$region=="Europe & Central Asia",]$life,
      col="grey75",
      main="Distribution of Life for Europe & Central Asia region",
-     #ylim=c(0,0.7),
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="Europe & Central Asia",]$life),
             sd(gap[gap$region=="Europe & Central Asia",]$life)),
@@ -683,13 +683,13 @@ curve(dnorm(x,mean(gap[gap$region=="Europe & Central Asia",]$life),
 * Life for Europe and central Asia is not distributed normally
 * Same as other regions it has two highs
 
-##### Middle East & North Africa
+#### Middle East & North Africa
 
 ```{r}
 hist(gap[gap$region=="Middle East & North Africa",]$life,
      col="grey75",
      main="Distribution of Life for Middle East & North Africa region",
-     #ylim=c(0,0.7),
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="Middle East & North Africa",]$life),
             sd(gap[gap$region=="Middle East & North Africa",]$life)),
@@ -702,13 +702,13 @@ curve(dnorm(x,mean(gap[gap$region=="Middle East & North Africa",]$life),
 * Same as other regions it has two highs
 
 
-##### South Asia
+#### South Asia
 
 ```{r}
 hist(gap[gap$region=="South Asia",]$life,
      col="grey75",
      main="Distribution of Life for South Asia region",
-     #ylim=c(0,0.7),
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="South Asia",]$life),
             sd(gap[gap$region=="South Asia",]$life)),
@@ -721,12 +721,12 @@ curve(dnorm(x,mean(gap[gap$region=="South Asia",]$life),
 * Data before 40 exceeds normal curve
 
 
-##### Sub-Saharan Africa
+#### Sub-Saharan Africa
 ```{r}
 hist(gap[gap$region=="Sub-Saharan Africa",]$life,
      col="grey75",
      main="Distribution of Life for Sub-Saharan Africa region",
-     #ylim=c(0,0.7),
+     xlab ="Life",
      prob= TRUE)
 curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
             sd(gap[gap$region=="Sub-Saharan Africa",]$life)),
@@ -745,9 +745,9 @@ curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
 
 
 
-## Linear regression
+# Linear regression
 
-#### Linear regression model with life as depdent on Income
+### Linear regression model with life as depdent on Income
 
 ```{r}
 gap_lm <- lm(life~income,data=gap) # Linear regression model
@@ -761,16 +761,16 @@ summary(gap_lm)
 As per linear regression model y = $\alpha$ + $\beta$ x
 Life = 38.73 + 0.0009217 * Income
 
-##### Interpretation of Linear regression model
+#### Interpretation of Linear regression model
 
 * Intercept $\alpha$ 38.73 indicates intercept value while all other values are zero in a linear regression model
-  - P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level
+  - P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alpha$ 0.05 level
   
 *	$\beta$ (b in sample prediction equation) represents the slope in a linear regression model  
 * Income coefficient estimate 0.0009217 indicates
   - by holding all other variables constant, a unit increase in income will increase life by 0.0009217 units
   - $\beta$>0 indicates both Life and Income are positively related
-  - test statistic t = 139.2 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level and we reject null hypothesis of $\beta$ =0
+  - test statistic t = 139.2 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alpha$ 0.05 level and we reject null hypothesis of $\beta$ =0
 
 * $\beta$ is not equal to 0  represents Life and Income are not  independent
 * As R squared = 0.3322 denotes variation in Life can be explained to the extent of 33.22% by variation in Income
@@ -781,7 +781,7 @@ Life = 38.73 + 0.0009217 * Income
 
 * Adjusted R square 33.22% represent variance in life is explained by variance in income by 33.22%
 
-##### Correlation of dependent variable and independent variable
+#### Correlation of dependent variable and independent variable
 
 ```{r}
 cor.test(gap$life,gap$income,use="complete.obs")
@@ -793,7 +793,7 @@ cor.test(gap$life,gap$income,use="complete.obs")
 
 
 
-##### Verification of linear relationship between dependent and independent variable
+#### Verification of linear relationship between dependent and independent variable
 
 Assumptions:
 1)	There is a linear relationship
@@ -801,7 +801,7 @@ Assumptions:
 3)	Residuals follow normal probability distribution
 
 
-##### Testing of linearity
+#### Testing of linearity
 
 ```{r}
 plot(gap$income~gap$life,pch=19,col="blue",
@@ -814,7 +814,7 @@ abline(lm(gap$income~gap$life),col="red",lty=2,lwd=3)
 
 As per above scatter plot we can identify that variables Life and Income are approximately in linear relationship, as regression line is inclined to upwards as the income increases.
 
-##### Verification of outliers
+#### Verification of outliers
 
 ```{r}
 plot(gap_lm,which = 4)  # Cooks distance
@@ -824,7 +824,7 @@ plot(gap_lm,which = 4)  # Cooks distance
 All the observations as per cooks distance are less than 4/38943 = 1.027, hece there no impacting outliers in the data set
 
 
-##### Verify the variability in the residuals is same for both large and small values for estimated Y
+#### Verify the variability in the residuals is same for both large and small values for estimated Y
 
 ```{r}
 
@@ -837,7 +837,7 @@ abline(h=0,col="red",lty=2,lwd=2)
 
 As per above plot variability of residuals is not same for both large and small value  for estimated y
 
-##### Statistical test for heteroscedasticity:
+#### Statistical test for heteroscedasticity:
 
 ```{r}
 ncvTest(gap_lm)
@@ -850,7 +850,7 @@ As the P value < 2.22e-16  is less than 0.05 we can conclude that linear regress
 statistical test for heteroscedasticity is in line with the residual vs fitter plot above
 
 
-##### Residuals to be normally distributed
+#### Residuals to be normally distributed
 
 ```{r}
 hist(gap_lm$residuals,
@@ -871,7 +871,7 @@ curve(dnorm(x,mean(gap_lm$residuals),
 As per above plot we can conclude residuals are not normally distributed 
 
 
-##### QQplot
+#### QQplot
 
 ```{r}
 
@@ -883,20 +883,133 @@ plot(gap_lm,which = 2)
 Since the linear regression model has heteroscedasticity and residuals vs pridicted are not normally distributed,  we can conclude linear regression model does not fit variables between Life and Income.
 
 
-##### Analysis on whether high income will always have high life expectancy
-
-As R squared is 0.3322,  Variation in Life (dependent variable) to the extent of 33% is explained by variation in income(indpendent variable)
-
-As per above scatter plot there are many people who have lower income had high life expectency
-
-As R squared is average (33.2%), we cannot conclude income level will completely determine the life expectancy. In other words we cannot conclude high income levels will always lead to higher life expectancy. 
 
 
+### Adding Interaction term to linear regression model on Life dependent on Income
+
+```{r}
+
+gap_lm_int <- lm(life~Year+income*as.factor(region),data=gap) # Linear regression model
 
 
+summary(gap_lm_int)
+
+```
+
+* R has choosen America region as the reference category
+
+* $\alpha$ Intercept -2.722e+02 indicates y intercept when all other values are zero including region
+
+* Coefficient estimate $\beta$ for the year 1.639e-01 indicates
+  - By holding all other variables constant a unit increase in Year will increase life by 1.639e-01 units
+  - p value < 2e-16 < 0.05 hence we reject null hyposthesis of $\beta$ = 0 it represents variation in life is explained by variation in year
+  
+* coefficeient estimate income 9.140e-04 denotes value for reference category America
+  - By holding all other variables constant for a reference category America for every unit increase in income will increase life by 9.140e-04 units
+  - P value < 2e-16 < 0.05 indicates variation in life is explained by variation in income for a reference category region = America by holding all other variables constant
+
+* coefficeient as.factor(region)East Asia & Pacific -5.906e-01 denotes difference in intercept  between reference category region = America and region =East Asia & Pacific, while all other variables are zero including income
+  - Since intercept value for region America = -2.722e+02   hence intercept value for region East Asia & Pacific = -2.722e+02 -5.906e-01 = -272.7906
+  - P value 0.00043 < .05 indicates t statics is significant at $\alpha$ 0.05 level
+  
+* coefficeient as.factor(region)Europe & Central Asia 3.990e+00   denotes difference in intercept  between reference category region = America and region =Europe & Central Asia, while all other variables are zero including income
+  - Since intercept value for region America = -2.722e+02   hence intercept value for region Europe & Central Asia = -2.722e+02 + 3.990e+00   = -268.21
+  - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
+
+* coefficeient as.factor(region)Middle East & North Africa -9.524e-01   denotes difference in intercept  between reference category region = America and region =Middle East & North Africa, while all other variables are zero including income
+  - Since intercept value for region America = -2.722e+02   hence intercept value for region Middle East & North Africa = -2.722e+02 -9.524e-01 = -273.1524
+  - P value 1.58e-07  < .05 indicates t statics is significant at $\alpha$ 0.05 level
+  
+* coefficeient as.factor(region)South Asia -7.609e+00   denotes difference in intercept  between reference category region = America and region =South Asia, while all other variables are zero including income
+  - Since intercept value for region America = -2.722e+02   hence intercept value for region South Asia = -2.722e+02 -7.609e+00 = -279.809
+  - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
+
+* coefficeient as.factor(region)Sub-Saharan Africa -3.843e+00  denotes difference in intercept  between reference category region = America and region =Sub-Saharan Africa, while all other variables are zero including income
+  - Since intercept value for region America = -2.722e+02   hence intercept value for region Sub-Saharan Africa = -2.722e+02 -3.843e+00 = -276.043
+  - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
 
 
-#### Linear regression model with Population as dependent on Life
+* Coefficeient income:as.factor(region)East Asia & Pacific -4.265e-04  denotes the slope difference between income for the reference category = America & East Asia & Pacific, as the slope for reference cateogry is 9.140e-04  slope for income for East Asia & Pacific = 9.140e-04-4.265e-04 = 0.0004875
+  - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is East Asia & Pacific
+
+* Coefficeient income:as.factor(region)Europe & Central Asia -3.204e-04 denotes the slope difference between income for the reference category = America & Europe & Central Asia, as the slope for reference cateogry is 9.140e-04  slope for income for Europe & Central Asia = 9.140e-04 -3.204e-04 = 
+  - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is Europe & Central Asia
+
+* Coefficeient income:as.factor(region)Middle East & North Africa -6.531e-04  denotes the slope difference between income for the reference category = America & Middle East & North Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Middle East & North Africa = 9.140e-04 -6.531e-04 =
+  - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is Middle East & North Africa
+  
+* Coefficeient income:as.factor(region)South Asia 2.332e-03 denotes the slope difference between income for the reference category = America & South Asia, as the slope for reference cateogry is 9.140e-04  slope for income for South Asia = 9.140e-04+2.332e-03 = 0.0004875
+  - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is South Asia
+  
+* Coefficeient income:as.factor(region)Sub-Saharan Africa -2.071e-04  denotes the slope difference between income for the reference category = Sub-Saharan Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Sub-Saharan Africa = 9.140e-04 -2.071e-04  = 
+  - P value 1.08e-08  <0.05 indicates variation in life is explained by variation in income where region is Sub-Saharan Africa
+  
+* 	P value of F test< 2.2e-160 < 0.05 we reject null hypothesis of βi =0, indicates multiple regression model as a whole is explaining the variation in dependent variable sales
+
+* degrees of freedom (n-13) 38930 indicates that only 38943 records are considered due to missing income values of 2341 records out of 41284 observations
+
+ 
+#### Residuals to be normally distributed
+ 
+```{r}
+hist(gap_lm_int$residuals,
+     col="grey75",
+     main="Distribution of residuals",
+     xlab= "Residuals",
+     prob= TRUE)
+curve(dnorm(x,mean(gap_lm_int$residuals),
+            sd(gap_lm_int$residuals)),
+      add=TRUE,
+      col="red",
+      lwd=3)
+
+```
+
+* As per above plot there is a slight deviation in the normal distribution but the data is well with in the normal distribution curve.
+* we can conclude residuals are normally distributed for a given year and region
+
+#### QQ plot
+
+```{r}
+plot(gap_lm_int,which = 2)
+```
+
+* As per above QQ plot there is a slight deviation of residuals
+* over all residuals are normally distribution for the interaction term linear regression model
+
+
+#### Verify the variability in the residuals is same for both large and small values for estimated Y
+
+```{r}
+plot(gap_lm_int$residuals~gap_lm_int$fitted.values,
+     xlab="Fitted values",
+     ylab="Residuals",
+     main="Residual vs Predicted values")
+abline(h=0,col="red",lty=2,lwd=2)
+
+```
+
+* As per above plot of fitted vs residuals variance of data for highs and lows are different it does data has heteroscedasticity
+
+#### Statistical test for heteroscedasticity:
+
+```{r}
+ncvTest(gap_lm_int)
+```
+
+* Satistical test concludes interaction term linear regression model has heteroscedasticity.
+* Over all interaction term linear regression model is best suits compared to normal regression model interms of heteroscedasticity
+
+
+#### Analysis on whether high income will always have high life expectancy
+
+As R squared is 0.7514,  Variation in Life (dependent variable) to the extent of 75% is explained by variation in income(indpendent variable) by controlling Year and Region
+
+Hence we can conclude for given Year and Region high life is a result of high income 
+ 
+
+
+### Linear regression model with Population as dependent on Life
 
 ```{r}
 gap_mod2 <- lm(population~life,data=gap) # Linear regression model
@@ -912,13 +1025,13 @@ population = -6315250 + 441077 * life
 
 
 * Intercept $\alpha$ -6315250 indicates intercept value while all other values are zero in a linear regression model
-  - P value 2.33e-13  < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level
+  - P value 2.33e-13  < 0.05 indicates that it is statistically singnificant at $\alpha$ 0.05 level
   
 *	$\beta$ (b in sample prediction equation) represents the slope in a linear regression model  
 * Income coefficient estimate 441077 indicates
   - by holding all other variables constant, a unit increase in Life will increase population by 441077 units
   - $\beta$>0 indicates both Life and population are positively related
-  - test statistic t = 23.474 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alhpa$ 0.05 level and we reject null hypothesis of $\beta$ =0
+  - test statistic t = 23.474 & P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alpha$ 0.05 level and we reject null hypothesis of $\beta$ =0
 
 * $\beta$ is not equal to 0  represents Life and Population are not  independent
 
@@ -931,7 +1044,7 @@ population = -6315250 + 441077 * life
 
 
 
-##### Correlation of dependent variable and independent variable
+#### Correlation of dependent variable and independent variable
 
 ```{r}
 cor.test(gap$population,gap$life,use="complete.obs")
@@ -942,7 +1055,7 @@ cor.test(gap$population,gap$life,use="complete.obs")
 * As correlation r = 0.1147721 denotes both the variables population and life are having very mild positive relationship
 * 95% confidence Interval is  ( 0.1052423, 0.1242807)
 
-##### Testing of linearity
+#### Testing of linearity
 
 ```{r}
 plot(gap$life~gap$population,pch=19,col="blue",
@@ -958,7 +1071,7 @@ abline(lm(gap$life~gap$population),col="red",lty=2,lwd=3)
 
 hence linear regression model is not suitable for population and life variables
 
-##### Verify the variability in the residuals is same for both large and small values for estimated Y
+#### Verify the variability in the residuals is same for both large and small values for estimated Y
 
 ```{r}
 
@@ -975,7 +1088,7 @@ ncvTest(gap_mod2) # test of heterscedasticity
 
 Hence linear regression model is not suitable for life and population variables
 
-##### Analysis on whether high Life will always have high population
+#### Analysis on whether high Life will always have high population
 
 As adjusted R square is 1.2% that means variation in increase in population is explained by variation in increase in life only by 1.2%
 
@@ -985,7 +1098,7 @@ Hence we can conclude that high life will not have high population
 
 
 
-## Cluster Analysis:
+# Cluster Analysis:
 
 **Performing Kmeans clustering on the gapminder dataset**
 
@@ -1004,7 +1117,7 @@ gap_1 <- na.omit(gap[,c(3,4,5)]) # gap_1 new data frame without null values is c
 
 
 
-#### Scaling
+### Scaling
 
 ```{r}
 gap_1 <- scale(gap_1)
@@ -1012,7 +1125,7 @@ gap_1 <- scale(gap_1)
 
 
 
-#### Optimal Clusters using Elbow point method
+### Optimal Clusters using Elbow point method
 
 ```{r, warning=FALSE}
 
@@ -1039,26 +1152,35 @@ plot(k.values, wss_values,
 * Variance from centroids to the data points are reduced highly till 4 clusters, as no of clusters increased variance reduced with lower levels
 
 
-#### Optimal clusters using Silhouette method
 
 
+### Optimal clusters using Silhouette method
 
-silhouette_score <- function(k){
-  km <- kmeans(gap_1, centers = k, nstart=25)
-  ss <- silhouette(km$cluster, dist(gap_1))
+
+ function to compute average silhouette for k clusters
+avg_sil <- function(k) {
+  km.res <- kmeans(gap_1, centers = k, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(gap_1))
   mean(ss[, 3])
 }
-k <- 2:10
-avg_sil <- sapply(k, silhouette_score)
-plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
+
+ Compute and plot wss for k = 2 to k = 15
+
+k.values <- 2:10
+
+avg_sil_values <- map_dbl(k.values, avg_sil)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
 
 
-fviz_nbclust(gap_1, kmeans, method='silhouette')
-```{r}
 
-```
+**Not able to run above code due to memory issues**
 
-#### Cluster Visualization
+
+### Cluster Visualization
 ```{r}
 final <- kmeans(gap_1, 4, nstart = 25)
 fviz_cluster(final, data = gap_1)
@@ -1071,7 +1193,7 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
 
 
-## Answers to the Questions
+# Answers to the Questions
 
  **Which region is better in Life and Income before 1950 & after 1950?**
   
@@ -1095,8 +1217,9 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
  **Whether life expectancy increases based on Income?**
 
-  - As per above linear regression modle where Life is dependent on Income, Adjusted R square is 33% it means, 33% of increase in life expectancy is explained by increase in income hence it is not very conclusive to say higher income will always lead to increase life
+  - As per above linear regression modle with interaction term where Life is dependent on Income with year and region, Adjusted R squared is 0.7514 it represents Variation in Life (dependent variable) to the extent of 75% is explained by variation in income(indpendent variable) by controlling Year and Region
 
+  - Hence we can conclude for given Year and Region high life is a result of high income 
 
 
 
@@ -1124,9 +1247,7 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
  **Whether population increased where life expectancy is more?**
 
-  - As per linear regression model where population is dependent on life, adjusted R square is 1.2% explains that variation in increase in population is explained by variation in increase in life only by 1.2%
-
-  - Hence we can conclude that high life will not have high population
+  - As per above linear regression model is not valid for where population is dependent on life hence we cannot conclude that high life will have high population
 
 
 
@@ -1134,9 +1255,6 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
 
 
 **End of the report**
-
-
-
 
 
 

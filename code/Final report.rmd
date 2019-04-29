@@ -1,12 +1,12 @@
 ---
 title: "Final report"
-author: "Shanmukh"
+author: "Shanmukh Pinna"
 date: "April 22, 2019"
 output:
   html_document:
     toc: TRUE
     toc_float: false
-    toc_depth: 6
+    toc_depth: 5
     df_print: paged
     code_folding: show
 ---
@@ -69,17 +69,21 @@ summary(gap) # summary of gap dataset
 * Year & income are with data type integer
 * life is a numeric data type
 * Income has 2341 null values
-* America region has 7961 records and South Asia has 1728 records in the gapminder dataset
+* No of records for each region
+  - America region has 7961 records 
+  - East Asia & Pacific has 6256 records
+  - Europe & Central Asia has 10468 records
+  - Middle East & North Africa has 4309 records
+  - Sub-Saharan Africa has 10562 records
+  - South Asia has 1728 records 
 
 
 # Questions
 
-* Which region is better in Life and Income before 1950 & after 1950?
-* Whether life expectancy increases based on Income?
-* Whether life expectancy improve over the years?
+* Which region is better in Life expectancy and Income before 1950 & after 1950?
+* Whether life expectancy increased based on Income?
+* Whether life expectancy improved over the years?
 * Whether Income levels improved over the years?
-* Whether population increased where life expectancy is more?
-
 
 
 # Data Wrangling
@@ -111,7 +115,7 @@ class(gap$population)
 ```
 
 
-### verify records with null values
+### Verify records with null values
 
 - Verify which columns has null values
 ```{r}
@@ -172,7 +176,7 @@ From the above analysis we can conclude all the countries with missing income da
 
 ```
 
-* Coratia Income data has been collected only from 1820 and prior years is not collected hence it is not logical to populate missing income values of earlier years with mean or median.
+* Croatia Income data has been collected only from 1820 and prior years is not collected hence it is not logical to populate missing income values of earlier years with mean or median.
 
 - we conclude that missing income values to the extent of 2341 needs to be omitted on need bases based on the analysis.
 
@@ -182,7 +186,7 @@ From the above analysis we can conclude all the countries with missing income da
 
 ### Box plots and Variance analysis
 
-#### Variance of Life across Regions
+#### Variance of life across regions
 
 ```{r}
 
@@ -215,7 +219,7 @@ gap %>%
 * south asia has outliers near life 80 and sub-saharan has outlier at high and low life.
 
 
-##### Variance of Life across Regions before 1950
+##### Variance of life across regions before 1950
 
 ```{r}
 
@@ -252,7 +256,7 @@ gap %>%
 * South asia was not doing well in life with mean & median of 29 and stand deviation of 5
 
 
-##### Variance of Life across Regions after 1950
+##### Variance of life across regions after 1950
 
 ```{r}
 
@@ -289,7 +293,7 @@ gap %>%
 
 
 
-#### Variance of Income across regions
+#### Variance of income across regions
 
 ```{r}
 
@@ -322,7 +326,7 @@ gap[complete.cases(gap), ] %>%
 * huge outlier exists for regions East Asia & pacific, Middle east& North Africa, south asia & sub saharan africa
 
 
-##### Variance of Income across regions before 1950
+##### Variance of income across regions before 1950
 
 ```{r}
 ggplot(data=gap[gap$Year<1950,],mapping=aes(x=region,y=income,fill=region))+
@@ -351,7 +355,7 @@ gap[complete.cases(gap), ] %>%
 * sub saharan africa is poor peformer in income before 1950 with low mean and median income
 
 
-##### Variance of Income across regions after 1950
+##### Variance of income across regions after 1950
 
 ```{r}
 ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=income,fill=region))+
@@ -379,10 +383,10 @@ gap[complete.cases(gap), ] %>%
 
 * After 1950 there are no outliers in income except for sub-sharan africa
 * Middle East & North Africa has high mean income however Europe & central Asia is better performer since median income is high with a standadard devation of 13K lower than 32K compared to middle east & north afirca
-* sub Asia is poor peformer in income after 1950 with low mean and median income
+* south Asia is poor peformer in income after 1950 with low mean and median income
 
 
-#### variance of population across regions
+#### Variance of population across regions
 
 ```{r}
 
@@ -441,7 +445,7 @@ gap[complete.cases(gap), ] %>%
 * Middle East & North Africa & sub saharan africa is having low population before 1950 with low mean and median income
 
 
-##### Variance of Population across regions after 1950
+##### Variance of population across regions after 1950
 
 ```{r}
 ggplot(data=gap[gap$Year>1950,],mapping=aes(x=region,y=population,fill=region))+
@@ -472,7 +476,7 @@ gap[complete.cases(gap), ] %>%
 * sub Saharan Africa is having low mean population after 1950 
 
 
-### Co-relation between elements of dataset
+### Correlation between elements of dataset
 
 ```{r}
 # subset only numeric data type columns without missing values
@@ -499,7 +503,7 @@ corrplot(cor(gap_num),method="ellipse")
   - As the Population increase Life expectency increases mildly.
   
 
-### Scatter plot to view Correlation results {.tabset .tabset-fade .tabset-pills}
+### Scatter plot to view correlation results {.tabset .tabset-fade .tabset-pills}
 
 #### Income Vs Life
 
@@ -552,7 +556,7 @@ abline(lm(gap$income~gap$population),col="red",lty=2,lwd=3)
   _ Both of the attributes don't have any relation
 
 
-### Trend of Income over life across regions
+### Trend of income over life across regions
 
 
 ```{r}
@@ -567,7 +571,7 @@ ggplot(gap[complete.cases(gap), ])+
 * Till age of 50 Income don't have any impact over life, from Age of 50 Life expectancy increased with Income levels across all the regions
 
 
-### Trend of Population over Life across all regions
+### Trend of population over life across all regions
 
 
 ```{r}
@@ -586,7 +590,7 @@ ggplot(gap[complete.cases(gap), ])+
 * East Asia Pacific has data skewed toward right
 
 
-### Trend of Population over Income across all regions
+### Trend of population over income across all regions
 
 ```{r}
 ggplot(gap[complete.cases(gap), ])+
@@ -600,7 +604,7 @@ ggplot(gap[complete.cases(gap), ])+
 * Income over population does not show substantial trend across regions
 
 
-### Verify Distribution of Life {.tabset .tabset-fade .tabset-pills}
+### Verify distribution of life {.tabset .tabset-fade .tabset-pills}
 
 #### All regions
 
@@ -747,7 +751,7 @@ curve(dnorm(x,mean(gap[gap$region=="Sub-Saharan Africa",]$life),
 
 # Linear regression
 
-### Linear regression model with life as depdent on Income
+### Linear regression model with life as dependent on Income
 
 ```{r}
 gap_lm <- lm(life~income,data=gap) # Linear regression model
@@ -761,7 +765,7 @@ summary(gap_lm)
 As per linear regression model y = $\alpha$ + $\beta$ x
 Life = 38.73 + 0.0009217 * Income
 
-#### Interpretation of Linear regression model
+#### Interpretation of linear regression model
 
 * Intercept $\alpha$ 38.73 indicates intercept value while all other values are zero in a linear regression model
   - P value <2e-16 < 0.05 indicates that it is statistically singnificant at $\alpha$ 0.05 level
@@ -885,7 +889,7 @@ Since the linear regression model has heteroscedasticity and residuals vs pridic
 
 
 
-### Adding Interaction term to linear regression model on Life dependent on Income
+### Adding Interaction term to linear regression model on life dependent on income
 
 ```{r}
 
@@ -908,40 +912,40 @@ summary(gap_lm_int)
   - By holding all other variables constant for a reference category America for every unit increase in income will increase life by 9.140e-04 units
   - P value < 2e-16 < 0.05 indicates variation in life is explained by variation in income for a reference category region = America by holding all other variables constant
 
-* coefficeient as.factor(region)East Asia & Pacific -5.906e-01 denotes difference in intercept  between reference category region = America and region =East Asia & Pacific, while all other variables are zero including income
+* coefficient as.factor(region)East Asia & Pacific -5.906e-01 denotes difference in intercept  between reference category region = America and region =East Asia & Pacific, while all other variables are zero including income
   - Since intercept value for region America = -2.722e+02   hence intercept value for region East Asia & Pacific = -2.722e+02 -5.906e-01 = -272.7906
   - P value 0.00043 < .05 indicates t statics is significant at $\alpha$ 0.05 level
   
-* coefficeient as.factor(region)Europe & Central Asia 3.990e+00   denotes difference in intercept  between reference category region = America and region =Europe & Central Asia, while all other variables are zero including income
+* coefficient as.factor(region)Europe & Central Asia 3.990e+00   denotes difference in intercept  between reference category region = America and region =Europe & Central Asia, while all other variables are zero including income
   - Since intercept value for region America = -2.722e+02   hence intercept value for region Europe & Central Asia = -2.722e+02 + 3.990e+00   = -268.21
   - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
 
-* coefficeient as.factor(region)Middle East & North Africa -9.524e-01   denotes difference in intercept  between reference category region = America and region =Middle East & North Africa, while all other variables are zero including income
+* coefficient as.factor(region)Middle East & North Africa -9.524e-01   denotes difference in intercept  between reference category region = America and region =Middle East & North Africa, while all other variables are zero including income
   - Since intercept value for region America = -2.722e+02   hence intercept value for region Middle East & North Africa = -2.722e+02 -9.524e-01 = -273.1524
   - P value 1.58e-07  < .05 indicates t statics is significant at $\alpha$ 0.05 level
   
-* coefficeient as.factor(region)South Asia -7.609e+00   denotes difference in intercept  between reference category region = America and region =South Asia, while all other variables are zero including income
+* coefficient as.factor(region)South Asia -7.609e+00   denotes difference in intercept  between reference category region = America and region =South Asia, while all other variables are zero including income
   - Since intercept value for region America = -2.722e+02   hence intercept value for region South Asia = -2.722e+02 -7.609e+00 = -279.809
   - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
 
-* coefficeient as.factor(region)Sub-Saharan Africa -3.843e+00  denotes difference in intercept  between reference category region = America and region =Sub-Saharan Africa, while all other variables are zero including income
+* coefficient as.factor(region)Sub-Saharan Africa -3.843e+00  denotes difference in intercept  between reference category region = America and region =Sub-Saharan Africa, while all other variables are zero including income
   - Since intercept value for region America = -2.722e+02   hence intercept value for region Sub-Saharan Africa = -2.722e+02 -3.843e+00 = -276.043
   - P value < 2e-16  < .05 indicates t statics is significant at $\alpha$ 0.05 level
 
 
-* Coefficeient income:as.factor(region)East Asia & Pacific -4.265e-04  denotes the slope difference between income for the reference category = America & East Asia & Pacific, as the slope for reference cateogry is 9.140e-04  slope for income for East Asia & Pacific = 9.140e-04-4.265e-04 = 0.0004875
+* Coefficient income:as.factor(region)East Asia & Pacific -4.265e-04  denotes the slope difference between income for the reference category = America & East Asia & Pacific, as the slope for reference cateogry is 9.140e-04  slope for income for East Asia & Pacific = 9.140e-04-4.265e-04 = 0.0004875
   - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is East Asia & Pacific
 
-* Coefficeient income:as.factor(region)Europe & Central Asia -3.204e-04 denotes the slope difference between income for the reference category = America & Europe & Central Asia, as the slope for reference cateogry is 9.140e-04  slope for income for Europe & Central Asia = 9.140e-04 -3.204e-04 = 
+* Coefficient income:as.factor(region)Europe & Central Asia -3.204e-04 denotes the slope difference between income for the reference category = America & Europe & Central Asia, as the slope for reference cateogry is 9.140e-04  slope for income for Europe & Central Asia = 9.140e-04 -3.204e-04 = 
   - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is Europe & Central Asia
 
-* Coefficeient income:as.factor(region)Middle East & North Africa -6.531e-04  denotes the slope difference between income for the reference category = America & Middle East & North Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Middle East & North Africa = 9.140e-04 -6.531e-04 =
+* Coefficient income:as.factor(region)Middle East & North Africa -6.531e-04  denotes the slope difference between income for the reference category = America & Middle East & North Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Middle East & North Africa = 9.140e-04 -6.531e-04 =
   - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is Middle East & North Africa
   
-* Coefficeient income:as.factor(region)South Asia 2.332e-03 denotes the slope difference between income for the reference category = America & South Asia, as the slope for reference cateogry is 9.140e-04  slope for income for South Asia = 9.140e-04+2.332e-03 = 0.0004875
+* Coefficient income:as.factor(region)South Asia 2.332e-03 denotes the slope difference between income for the reference category = America & South Asia, as the slope for reference cateogry is 9.140e-04  slope for income for South Asia = 9.140e-04+2.332e-03 = 0.0004875
   - P value < 2e-16 <0.05 indicates variation in life is explained by variation in income where region is South Asia
   
-* Coefficeient income:as.factor(region)Sub-Saharan Africa -2.071e-04  denotes the slope difference between income for the reference category = Sub-Saharan Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Sub-Saharan Africa = 9.140e-04 -2.071e-04  = 
+* Coefficient income:as.factor(region)Sub-Saharan Africa -2.071e-04  denotes the slope difference between income for the reference category = Sub-Saharan Africa, as the slope for reference cateogry is 9.140e-04  slope for income for Sub-Saharan Africa = 9.140e-04 -2.071e-04  = 
   - P value 1.08e-08  <0.05 indicates variation in life is explained by variation in income where region is Sub-Saharan Africa
   
 * 	P value of F test< 2.2e-160 < 0.05 we reject null hypothesis of βi =0, indicates multiple regression model as a whole is explaining the variation in dependent variable sales
@@ -1009,7 +1013,7 @@ Hence we can conclude for given Year and Region high life is a result of high in
  
 
 
-### Linear regression model with Population as dependent on Life
+### Linear regression model with population as dependent on life
 
 ```{r}
 gap_mod2 <- lm(population~life,data=gap) # Linear regression model
@@ -1088,7 +1092,7 @@ ncvTest(gap_mod2) # test of heterscedasticity
 
 Hence linear regression model is not suitable for life and population variables
 
-#### Analysis on whether high Life will always have high population
+#### Analysis on whether high life will always have high population
 
 As adjusted R square is 1.2% that means variation in increase in population is explained by variation in increase in life only by 1.2%
 
@@ -1189,7 +1193,7 @@ fviz_cluster(final, data = gap_1)
 
 
 
-Visualzation of 4 clusters they are tighly grouped with 4 centroids.
+Visualization of 4 clusters they are tightly grouped with 4 centroids.
 
 
 
@@ -1198,29 +1202,28 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
  **Which region is better in Life and Income before 1950 & after 1950?**
   
  - Before 1950 Life
-    - Europe and central asia is better performer with mean and median of 39 & 37 years with standard deviation fo 9
+    - Europe and central asia are better performers with mean and median of 39 & 37 years with standard deviation fo 9
     - South asia is poor performer with mean and meain of 29 with standard deviation of 5
     
   - After 1950 Life
     - Life has improved a lot after 1950 across all regions
-    - Europe & central asia is better performer with mean and median of 71 years with lower standard deviation of 6 year
-    - South Asia has improved from before 1950 and after 1950
+    - Europe & central asia are better performers with mean and median of 71 years with lower standard deviation of 6 years
+    - South Asia has improved after 1950
     - Sub-Saharan africa is poor performer in life with mean and median of 54 and with standard deviation of 8 compared to other regions
   
   - Before 1950 Income
-    - Europe & Central Asia is better high mean & median income with high standard deviation
+    - Europe & Central Asia are better performers with high mean & median income with high standard deviation
     - sub saharan africa is poor peformer in income before 1950 with low mean and median income
     
   - After 1950 Income
-    -  Europe & central Asia is better performer since median income is high with a standadard devation of 13K lower than 32K compared to middleeast region
-    - Sub Asia is poor peformer in income with low mean and median income
+    -  Europe & central Asia are better performers since median income is high with a standard deviation of 13K lower than 32K compared to middle east region
+    - South Asia is poor performer in income with low mean and median income
 
  **Whether life expectancy increases based on Income?**
 
-  - As per above linear regression modle with interaction term where Life is dependent on Income with year and region, Adjusted R squared is 0.7514 it represents Variation in Life (dependent variable) to the extent of 75% is explained by variation in income(indpendent variable) by controlling Year and Region
+  - As per above linear regression model with interaction term where life is dependent on income with year and region, adjusted R squared is 0.7514. It represents variation in life (dependent variable) to the extent of 75% is explained by variation in income(indpendent variable) by controlling year and region.
 
-  - Hence we can conclude for given Year and Region high life is a result of high income 
-
+  - Hence we can conclude for given year and region, high life is a result of high income.
 
 
  **Whether life expectancy improved over the years?**
@@ -1244,10 +1247,6 @@ Visualzation of 4 clusters they are tighly grouped with 4 centroids.
   - South asia region median income increased by 1.6 times
   - sub sahara african region median income increased by 2.2 times
    
-
- **Whether population increased where life expectancy is more?**
-
-  - As per above linear regression model is not valid for where population is dependent on life hence we cannot conclude that high life will have high population
 
 
 
